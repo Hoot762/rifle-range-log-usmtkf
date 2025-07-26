@@ -1,6 +1,6 @@
 import { Text, View, SafeAreaView, ScrollView, TextInput, Alert, Image, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Button from '../components/Button';
 import Icon from '../components/Icon';
 import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
@@ -45,6 +45,9 @@ export default function AddEntryScreen() {
   const [targetImageUri, setTargetImageUri] = useState<string | null>(null);
   const [showShotScores, setShowShotScores] = useState(false);
 
+  // Create refs for each shot input field
+  const shotInputRefs = useRef<(TextInput | null)[]>(Array(12).fill(null));
+
   const onDateChange = (event: any, selectedDate?: Date) => {
     console.log('Date picker event:', event.type, selectedDate);
     
@@ -69,6 +72,17 @@ export default function AddEntryScreen() {
       console.log(`Updated shot ${index + 1} to "${cleanValue}"`);
       
       calculateTotalScore(newScores);
+
+      // Auto-tab to next input field if a value was entered and we're not at the last field
+      if (cleanValue !== '' && index < 11) {
+        const nextInputRef = shotInputRefs.current[index + 1];
+        if (nextInputRef) {
+          console.log(`Auto-tabbing to shot ${index + 2}`);
+          setTimeout(() => {
+            nextInputRef.focus();
+          }, 100); // Small delay to ensure the state update is complete
+        }
+      }
     }
   };
 
@@ -101,6 +115,14 @@ export default function AddEntryScreen() {
   const addAllShots = () => {
     setShowShotScores(true);
     console.log('Showing shot score inputs');
+    // Focus on the first shot input after showing the inputs
+    setTimeout(() => {
+      const firstInputRef = shotInputRefs.current[0];
+      if (firstInputRef) {
+        firstInputRef.focus();
+        console.log('Auto-focused on first shot input');
+      }
+    }, 200);
   };
 
   const clearAllShots = () => {
@@ -303,6 +325,9 @@ export default function AddEntryScreen() {
                   Shot {index + 1}
                 </Text>
                 <TextInput
+                  ref={(ref) => {
+                    shotInputRefs.current[index] = ref;
+                  }}
                   style={[commonStyles.input, { 
                     marginVertical: 4,
                     textAlign: 'center',
@@ -313,8 +338,17 @@ export default function AddEntryScreen() {
                   onChangeText={(value) => updateShotScore(index, value)}
                   placeholder="0 or v"
                   placeholderTextColor={colors.grey}
-                  returnKeyType="next"
+                  returnKeyType={index < 11 ? "next" : "done"}
                   autoCapitalize="none"
+                  onSubmitEditing={() => {
+                    // Handle manual "next" button press
+                    if (index < 11) {
+                      const nextInputRef = shotInputRefs.current[index + 1];
+                      if (nextInputRef) {
+                        nextInputRef.focus();
+                      }
+                    }
+                  }}
                 />
               </View>
             );
@@ -333,6 +367,7 @@ export default function AddEntryScreen() {
         }]}>
           Enter scores for up to 12 individual shots. Use "v" for V-ring hits (5 points each).
           {'\n'}Total score will be calculated automatically.
+          {'\n'}The cursor will automatically move to the next shot after entering a score.
         </Text>
         {rows}
         <View style={[commonStyles.row, { marginTop: 15 }]}>
