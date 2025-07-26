@@ -157,7 +157,7 @@ export default function ViewEntriesScreen() {
               {entry.entryName || 'Unnamed Entry'}
             </Text>
             <Text style={[commonStyles.text, { fontSize: 14, color: colors.grey }]}>
-              {entry.rifleName}
+              {entry.rifleName} {entry.rifleCalibber ? `(${entry.rifleCalibber})` : ''}
             </Text>
           </View>
           <TouchableOpacity
@@ -179,9 +179,6 @@ export default function ViewEntriesScreen() {
         </View>
         
         <Text style={commonStyles.text}>Date: {entry.date}</Text>
-        {entry.rifleCalibber && (
-          <Text style={commonStyles.text}>Caliber: {entry.rifleCalibber}</Text>
-        )}
         <Text style={commonStyles.text}>Distance: {entry.distance}</Text>
         
         <View style={commonStyles.row}>
@@ -227,7 +224,7 @@ export default function ViewEntriesScreen() {
               marginBottom: 4,
               textAlign: 'center'
             }]}>
-              Shot Scores ({entry.shotScores.length} shots{shotStats && shotStats.vCount > 0 ? `, ${shotStats.vCount} V-ring (${shotStats.vPoints}pts)` : ''})
+              Shot Scores ({entry.shotScores.length} shots{shotStats && shotStats.vCount > 0 ? `, ${shotStats.vCount} V-Bull (${shotStats.vPoints}pts)` : ''})
             </Text>
             <Text style={[commonStyles.text, { 
               fontSize: 12, 

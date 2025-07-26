@@ -234,7 +234,7 @@ export default function EntryDetailsScreen() {
                 marginBottom: 2,
                 color: colors.grey
               }]}>
-                V-Ring Hits
+                V-Bull Hits
               </Text>
               <Text style={[commonStyles.text, { 
                 fontWeight: 'bold',
@@ -303,21 +303,18 @@ export default function EntryDetailsScreen() {
         <View style={{ alignItems: 'center', marginBottom: 20 }}>
           <Icon name="document-text" size={60} style={{ marginBottom: 10 }} />
           <Text style={commonStyles.title}>{entry.entryName || 'Entry Details'}</Text>
-          <Text style={[commonStyles.text, { fontSize: 14, color: colors.grey }]}>
-            {entry.rifleName}
-          </Text>
         </View>
 
-        {/* Basic Information */}
+        {/* Rifle Information */}
         <View style={commonStyles.card}>
           <Text style={[commonStyles.subtitle, { textAlign: 'center', marginBottom: 15 }]}>
-            Basic Information
+            Rifle Information
           </Text>
           
           <View style={commonStyles.row}>
-            <Text style={[commonStyles.text, { flex: 1, fontWeight: '600' }]}>Date:</Text>
+            <Text style={[commonStyles.text, { flex: 1, fontWeight: '600' }]}>Rifle Name:</Text>
             <Text style={[commonStyles.text, { flex: 1, textAlign: 'right' }]}>
-              {entry.date}
+              {entry.rifleName}
             </Text>
           </View>
 
@@ -329,6 +326,20 @@ export default function EntryDetailsScreen() {
               </Text>
             </View>
           )}
+        </View>
+
+        {/* Basic Information */}
+        <View style={commonStyles.card}>
+          <Text style={[commonStyles.subtitle, { textAlign: 'center', marginBottom: 15 }]}>
+            Session Information
+          </Text>
+          
+          <View style={commonStyles.row}>
+            <Text style={[commonStyles.text, { flex: 1, fontWeight: '600' }]}>Date:</Text>
+            <Text style={[commonStyles.text, { flex: 1, textAlign: 'right' }]}>
+              {entry.date}
+            </Text>
+          </View>
 
           <View style={commonStyles.row}>
             <Text style={[commonStyles.text, { flex: 1, fontWeight: '600' }]}>Distance:</Text>
