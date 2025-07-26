@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import Icon from '../components/Icon';
-import { Text, View, SafeAreaView, ScrollView, Alert, TextInput } from 'react-native';
+import { Text, View, SafeAreaView, ScrollView, Alert } from 'react-native';
 import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import Button from '../components/Button';
 import * as FileSystem from 'expo-file-system';
+import * as DocumentPicker from 'expo-document-picker';
 
 interface RangeEntry {
   id: string;
@@ -37,7 +38,6 @@ interface ImportData {
 export default function LoadDataScreen() {
   console.log('LoadDataScreen rendered');
 
-  const [jsonInput, setJsonInput] = useState('');
   const [isImporting, setIsImporting] = useState(false);
 
   const saveBase64Image = async (base64Data: string, entryId: string): Promise<string> => {
@@ -130,24 +130,61 @@ export default function LoadDataScreen() {
     }
   };
 
-  const loadFromJson = async () => {
-    console.log('Loading data from JSON input...');
+  const selectAndImportJsonFile = async () => {
+    console.log('Opening file picker for JSON import...');
     
-    if (!jsonInput.trim()) {
-      Alert.alert('Error', 'Please enter JSON data');
-      return;
-    }
-
     setIsImporting(true);
 
+    try {
+      // Open document picker to select JSON file
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/json',
+        copyToCacheDirectory: true,
+      });
+
+      console.log('Document picker result:', result);
+
+      if (result.canceled) {
+        console.log('File selection cancelled by user');
+        Alert.alert('Import Cancelled', 'No file was selected.');
+        return;
+      }
+
+      if (!result.assets || result.assets.length === 0) {
+        console.log('No file selected');
+        Alert.alert('Error', 'No file was selected.');
+        return;
+      }
+
+      const file = result.assets[0];
+      console.log(`Selected file: ${file.name}, size: ${file.size} bytes`);
+
+      // Read the file content
+      const fileContent = await FileSystem.readAsStringAsync(file.uri);
+      console.log(`File content length: ${fileContent.length} characters`);
+
+      // Parse and process the JSON data
+      await processJsonData(fileContent);
+
+    } catch (error) {
+      console.error('Error selecting or reading file:', error);
+      Alert.alert('Error', 'Failed to read the selected file. Please make sure it&apos;s a valid JSON file.');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const processJsonData = async (jsonContent: string) => {
+    console.log('Processing JSON data...');
+    
     try {
       // First, validate that the JSON is parseable
       let parsedData;
       try {
-        parsedData = JSON.parse(jsonInput);
+        parsedData = JSON.parse(jsonContent);
       } catch (parseError) {
         console.error('JSON parse error:', parseError);
-        Alert.alert('Error', 'Invalid JSON format. Please check your data and try again.');
+        Alert.alert('Error', 'Invalid JSON format. Please check your file and try again.');
         return;
       }
       
@@ -238,7 +275,7 @@ export default function LoadDataScreen() {
       const duplicateCount = processedEntries.length - newEntries.length;
       
       if (newEntries.length === 0) {
-        Alert.alert('Info', 'All entries in the JSON data already exist. No new entries were imported.');
+        Alert.alert('Info', 'All entries in the JSON file already exist. No new entries were imported.');
         return;
       }
 
@@ -259,13 +296,10 @@ export default function LoadDataScreen() {
       message += '!';
       
       Alert.alert('Success', message);
-      setJsonInput('');
       console.log(`Import completed: ${newEntries.length} new entries, ${imagesProcessed} images processed, ${imagesFailed} images failed, ${duplicateCount} duplicates skipped`);
     } catch (error) {
-      console.error('Error importing JSON:', error);
+      console.error('Error processing JSON data:', error);
       Alert.alert('Error', 'Import failed. Please check your data and try again.');
-    } finally {
-      setIsImporting(false);
     }
   };
 
@@ -331,9 +365,9 @@ export default function LoadDataScreen() {
         </View>
 
         <View style={commonStyles.card}>
-          <Text style={commonStyles.subtitle}>Import from JSON</Text>
+          <Text style={commonStyles.subtitle}>Import from JSON File</Text>
           <Text style={commonStyles.text}>
-            Paste JSON data from a previous export to restore your entries and photos.
+            Select a JSON file from your device to restore your entries and photos. This file should be from a previous export.
           </Text>
           
           {isImporting && (
@@ -354,26 +388,9 @@ export default function LoadDataScreen() {
             </View>
           )}
           
-          <Text style={commonStyles.label}>JSON Data:</Text>
-          <TextInput
-            style={[commonStyles.input, { 
-              height: 120, 
-              textAlignVertical: 'top',
-              fontFamily: 'monospace',
-              fontSize: 12
-            }]}
-            value={jsonInput}
-            onChangeText={setJsonInput}
-            placeholder="Paste your JSON export data here..."
-            placeholderTextColor={colors.grey}
-            multiline
-            returnKeyType="done"
-            editable={!isImporting}
-          />
-          
           <Button
-            text={isImporting ? "Importing..." : "Import Data"}
-            onPress={loadFromJson}
+            text={isImporting ? "Importing..." : "Select JSON File"}
+            onPress={selectAndImportJsonFile}
             style={[buttonStyles.primary, {
               opacity: isImporting ? 0.6 : 1
             }]}
