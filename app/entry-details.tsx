@@ -80,7 +80,6 @@ export default function EntryDetailsScreen() {
       const cleanScore = score.trim().toLowerCase();
       if (cleanScore === 'v') {
         vCount++;
-        numericTotal += 5; // v counts as 5 points
       } else {
         const numValue = parseFloat(cleanScore);
         if (!isNaN(numValue)) {
@@ -91,13 +90,13 @@ export default function EntryDetailsScreen() {
     });
 
     const totalScore = numericTotal + (vCount * 0.1);
-    const numericAverage = numericScores.length > 0 ? numericScores.reduce((a, b) => a + b, 0) / numericScores.length : 0;
+    const average = numericScores.length > 0 ? numericTotal / numericScores.length : 0;
 
     return {
       totalScore,
       numericTotal,
       vCount,
-      numericAverage,
+      average,
       totalShots: scores.length
     };
   };
@@ -207,7 +206,7 @@ export default function EntryDetailsScreen() {
                 marginBottom: 2,
                 color: colors.grey
               }]}>
-                Points Total
+                Numeric Total
               </Text>
               <Text style={[commonStyles.text, { 
                 fontWeight: 'bold',
@@ -236,7 +235,7 @@ export default function EntryDetailsScreen() {
                 fontWeight: 'bold',
                 marginBottom: 0
               }]}>
-                {stats.vCount} ({stats.vCount * 5}pts)
+                {stats.vCount}
               </Text>
             </View>
             
@@ -259,7 +258,7 @@ export default function EntryDetailsScreen() {
                 fontWeight: 'bold',
                 marginBottom: 0
               }]}>
-                {stats.numericAverage.toFixed(1)}
+                {stats.average.toFixed(1)}
               </Text>
             </View>
           </View>

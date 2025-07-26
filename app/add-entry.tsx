@@ -81,7 +81,6 @@ export default function AddEntryScreen() {
       const cleanScore = score.trim().toLowerCase();
       if (cleanScore === 'v') {
         vCount++;
-        numericTotal += 5; // v counts as 5 points
       } else {
         const numValue = parseFloat(cleanScore);
         if (!isNaN(numValue)) {
@@ -90,10 +89,10 @@ export default function AddEntryScreen() {
       }
     });
 
-    // Calculate total: numeric total + decimal representation of v count
+    // Calculate total with v's as decimal points
     const totalScore = numericTotal + (vCount * 0.1);
     setScore(totalScore.toString());
-    console.log(`Calculated total score: ${totalScore} (${numericTotal - (vCount * 5)} numeric + ${vCount} v's worth ${vCount * 5} points + ${vCount * 0.1} decimal)`);
+    console.log(`Calculated total score: ${totalScore} (${numericTotal} + ${vCount} v's)`);
   };
 
   const addAllShots = () => {
@@ -271,7 +270,7 @@ export default function AddEntryScreen() {
           textAlign: 'center',
           color: colors.grey
         }]}>
-          Enter scores for up to 12 individual shots. Use "v" for V-ring hits (worth 5 points).
+          Enter scores for up to 12 individual shots. Use "v" for V-ring hits.
           {'\n'}Total score will be calculated automatically.
         </Text>
         {rows}
@@ -442,7 +441,7 @@ export default function AddEntryScreen() {
                   textAlign: 'left',
                   marginBottom: 0
                 }]}>
-                  Track up to 12 individual shot scores. Use "v" for V-ring hits (worth 5 points).
+                  Track up to 12 individual shot scores. Use "v" for V-ring hits.
                 </Text>
               </View>
               <Button
