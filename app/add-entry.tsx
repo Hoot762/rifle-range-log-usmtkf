@@ -8,10 +8,11 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 
 interface RangeEntry {
   id: string;
-  entryName: string; // Added entry name field
+  entryName: string;
   date: string;
   rifleName: string;
   rifleCalibber: string;
@@ -20,7 +21,7 @@ interface RangeEntry {
   windageMOA: string;
   notes: string;
   score: string;
-  shotScores?: string[]; // Changed to string array to handle "v" entries
+  shotScores?: string[];
   bullGrainWeight: string;
   targetImageUri?: string;
   timestamp: number;
@@ -29,7 +30,7 @@ interface RangeEntry {
 export default function AddEntryScreen() {
   console.log('AddEntryScreen rendered');
 
-  const [entryName, setEntryName] = useState(''); // Added entry name state
+  const [entryName, setEntryName] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [rifleName, setRifleName] = useState('');
@@ -53,7 +54,6 @@ export default function AddEntryScreen() {
     }
     
     if (event.type === 'set' && selectedDate) {
-      // Date was selected, update the date and close the picker
       setDate(selectedDate);
       setShowDatePicker(false);
       console.log('Date updated to:', selectedDate.toDateString());
@@ -61,7 +61,6 @@ export default function AddEntryScreen() {
   };
 
   const updateShotScore = (index: number, value: string) => {
-    // Allow empty string, valid numbers (including decimals), or "v"
     const cleanValue = value.toLowerCase().trim();
     if (cleanValue === '' || cleanValue === 'v' || /^\d*\.?\d*$/.test(cleanValue)) {
       const newScores = [...shotScores];
@@ -69,7 +68,6 @@ export default function AddEntryScreen() {
       setShotScores(newScores);
       console.log(`Updated shot ${index + 1} to "${cleanValue}"`);
       
-      // Auto-calculate total score if individual shots are entered
       calculateTotalScore(newScores);
     }
   };
@@ -84,7 +82,7 @@ export default function AddEntryScreen() {
     validScores.forEach(score => {
       const cleanScore = score.trim().toLowerCase();
       if (cleanScore === 'v') {
-        numericTotal += 5; // Each "v" counts as 5 points
+        numericTotal += 5;
         vCount++;
       } else {
         const numValue = parseFloat(cleanScore);
@@ -94,8 +92,7 @@ export default function AddEntryScreen() {
       }
     });
 
-    // Calculate total: numeric total + decimal representing v count
-    const decimalPart = vCount / 10; // 0.1 for 1 v, 0.2 for 2 v's, etc.
+    const decimalPart = vCount / 10;
     const totalScore = numericTotal + decimalPart;
     setScore(totalScore.toString());
     console.log(`Calculated total score: ${totalScore} (${numericTotal} points + ${vCount} v's as 0.${vCount})`);
@@ -108,14 +105,44 @@ export default function AddEntryScreen() {
 
   const clearAllShots = () => {
     setShotScores(Array(12).fill(''));
-    setScore(''); // Clear total score when clearing individual shots
+    setScore('');
     console.log('Cleared all shot scores');
+  };
+
+  const saveImageToAppDirectory = async (sourceUri: string): Promise<string> => {
+    try {
+      console.log('Saving image to app directory from:', sourceUri);
+      
+      // Create photos directory if it doesn't exist
+      const photosDir = FileSystem.documentDirectory + 'photos/';
+      const dirInfo = await FileSystem.getInfoAsync(photosDir);
+      if (!dirInfo.exists) {
+        await FileSystem.makeDirectoryAsync(photosDir, { intermediates: true });
+        console.log('Created photos directory');
+      }
+
+      // Generate unique filename
+      const timestamp = Date.now();
+      const filename = `target_${timestamp}.jpg`;
+      const destinationUri = photosDir + filename;
+
+      // Copy the image to our app directory
+      await FileSystem.copyAsync({
+        from: sourceUri,
+        to: destinationUri
+      });
+
+      console.log('Image saved to:', destinationUri);
+      return destinationUri;
+    } catch (error) {
+      console.error('Error saving image:', error);
+      throw error;
+    }
   };
 
   const pickImage = async () => {
     console.log('Opening image picker...');
     
-    // Request permission
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
     if (permissionResult.granted === false) {
@@ -123,7 +150,6 @@ export default function AddEntryScreen() {
       return;
     }
 
-    // Show action sheet to choose between camera and gallery
     Alert.alert(
       'Select Image',
       'Choose how you want to add a target photo',
@@ -153,8 +179,14 @@ export default function AddEntryScreen() {
     });
 
     if (!result.canceled && result.assets[0]) {
-      setTargetImageUri(result.assets[0].uri);
-      console.log('Image captured:', result.assets[0].uri);
+      try {
+        const savedUri = await saveImageToAppDirectory(result.assets[0].uri);
+        setTargetImageUri(savedUri);
+        console.log('Image captured and saved:', savedUri);
+      } catch (error) {
+        console.error('Error saving captured image:', error);
+        Alert.alert('Error', 'Failed to save image. Please try again.');
+      }
     }
   };
 
@@ -169,12 +201,30 @@ export default function AddEntryScreen() {
     });
 
     if (!result.canceled && result.assets[0]) {
-      setTargetImageUri(result.assets[0].uri);
-      console.log('Image selected:', result.assets[0].uri);
+      try {
+        const savedUri = await saveImageToAppDirectory(result.assets[0].uri);
+        setTargetImageUri(savedUri);
+        console.log('Image selected and saved:', savedUri);
+      } catch (error) {
+        console.error('Error saving selected image:', error);
+        Alert.alert('Error', 'Failed to save image. Please try again.');
+      }
     }
   };
 
-  const removeImage = () => {
+  const removeImage = async () => {
+    if (targetImageUri) {
+      try {
+        // Delete the image file from storage
+        const fileInfo = await FileSystem.getInfoAsync(targetImageUri);
+        if (fileInfo.exists) {
+          await FileSystem.deleteAsync(targetImageUri);
+          console.log('Image file deleted:', targetImageUri);
+        }
+      } catch (error) {
+        console.error('Error deleting image file:', error);
+      }
+    }
     setTargetImageUri(null);
     console.log('Image removed');
   };
@@ -192,7 +242,6 @@ export default function AddEntryScreen() {
       return;
     }
 
-    // Filter out empty shot scores
     const validShotScores = shotScores
       .map(score => score.trim().toLowerCase())
       .filter(score => score !== '');
@@ -201,7 +250,7 @@ export default function AddEntryScreen() {
 
     const entry: RangeEntry = {
       id: Date.now().toString(),
-      entryName: entryName.trim(), // Added entry name to the saved entry
+      entryName: entryName.trim(),
       date: date.toISOString().split('T')[0],
       rifleName: rifleName.trim(),
       rifleCalibber: rifleCalibber.trim(),
@@ -210,7 +259,7 @@ export default function AddEntryScreen() {
       windageMOA: windageMOA.trim(),
       notes: notes.trim(),
       score: score.trim(),
-      shotScores: validShotScores.length > 0 ? validShotScores : undefined, // Only include if there are valid scores
+      shotScores: validShotScores.length > 0 ? validShotScores : undefined,
       bullGrainWeight: bullGrainWeight.trim(),
       targetImageUri: targetImageUri || undefined,
       timestamp: Date.now(),
@@ -369,7 +418,7 @@ export default function AddEntryScreen() {
               is24Hour={true}
               display={Platform.OS === 'ios' ? 'spinner' : 'default'}
               onChange={onDateChange}
-              maximumDate={new Date()} // Prevent future dates
+              maximumDate={new Date()}
             />
           )}
 
