@@ -19,7 +19,7 @@ interface RangeEntry {
   windageMOA: string;
   notes: string;
   score: string;
-  shotScores: number[];
+  shotScores?: number[]; // Made optional
   bullGrainWeight: string;
   targetImageUri?: string;
   timestamp: number;
@@ -40,6 +40,7 @@ export default function AddEntryScreen() {
   const [bullGrainWeight, setBullGrainWeight] = useState('');
   const [shotScores, setShotScores] = useState<string[]>(Array(12).fill(''));
   const [targetImageUri, setTargetImageUri] = useState<string | null>(null);
+  const [showShotScores, setShowShotScores] = useState(false);
 
   const onDateChange = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || date;
@@ -146,7 +147,7 @@ export default function AddEntryScreen() {
       windageMOA: windageMOA.trim(),
       notes: notes.trim(),
       score: score.trim(),
-      shotScores: validShotScores,
+      shotScores: validShotScores.length > 0 ? validShotScores : undefined, // Only include if there are valid scores
       bullGrainWeight: bullGrainWeight.trim(),
       targetImageUri: targetImageUri || undefined,
       timestamp: Date.now(),
@@ -175,6 +176,8 @@ export default function AddEntryScreen() {
   };
 
   const renderShotInputs = () => {
+    if (!showShotScores) return null;
+
     const rows = [];
     for (let i = 0; i < 12; i += 3) {
       rows.push(
@@ -302,10 +305,38 @@ export default function AddEntryScreen() {
             placeholderTextColor={colors.grey}
           />
 
-          <Text style={[commonStyles.label, { marginTop: 15, marginBottom: 10 }]}>
-            Individual Shot Scores (up to 12 shots)
-          </Text>
-          {renderShotInputs()}
+          <View style={{ marginTop: 15 }}>
+            <View style={commonStyles.row}>
+              <Text style={[commonStyles.label, { flex: 1 }]}>
+                Individual Shot Scores (Optional)
+              </Text>
+              <Button
+                text={showShotScores ? "Hide Shots" : "Add Shots"}
+                onPress={() => setShowShotScores(!showShotScores)}
+                style={[buttonStyles.secondary, { 
+                  paddingHorizontal: 15,
+                  paddingVertical: 8,
+                  minHeight: 35
+                }]}
+                textStyle={{ fontSize: 14 }}
+              />
+            </View>
+            
+            {showShotScores && (
+              <View style={{ marginTop: 10 }}>
+                <Text style={[commonStyles.text, { 
+                  fontSize: 14, 
+                  fontStyle: 'italic',
+                  marginBottom: 10,
+                  textAlign: 'center',
+                  color: colors.grey
+                }]}>
+                  Enter scores for up to 12 individual shots (leave blank to skip)
+                </Text>
+                {renderShotInputs()}
+              </View>
+            )}
+          </View>
 
           <Text style={[commonStyles.label, { marginTop: 15 }]}>Target Photo</Text>
           {targetImageUri ? (

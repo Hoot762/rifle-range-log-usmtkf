@@ -16,7 +16,7 @@ interface RangeEntry {
   windageMOA: string;
   notes: string;
   score?: string;
-  shotScores?: number[];
+  shotScores?: number[]; // Optional
   bullGrainWeight?: string;
   targetImageUri?: string;
   timestamp: number;
@@ -188,7 +188,7 @@ export default function ViewEntriesScreen() {
         </View>
       )}
 
-      {entry.shotScores && entry.shotScores.length > 0 && (
+      {entry.shotScores && entry.shotScores.length > 0 ? (
         <View style={{
           backgroundColor: colors.secondary,
           borderRadius: 6,
@@ -208,6 +208,23 @@ export default function ViewEntriesScreen() {
             textAlign: 'center'
           }]}>
             {entry.shotScores.join(', ')}
+          </Text>
+        </View>
+      ) : (
+        <View style={{
+          backgroundColor: colors.inputBackground,
+          borderRadius: 6,
+          padding: 8,
+          marginVertical: 4,
+          alignItems: 'center'
+        }}>
+          <Text style={[commonStyles.text, { 
+            fontSize: 12, 
+            fontStyle: 'italic',
+            color: colors.grey,
+            marginBottom: 0
+          }]}>
+            No individual shot scores recorded
           </Text>
         </View>
       )}
