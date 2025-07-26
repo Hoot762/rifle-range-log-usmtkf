@@ -16,6 +16,8 @@ interface RangeEntry {
   windageMOA: string;
   notes: string;
   score?: string;
+  shotScores?: number[];
+  bullGrainWeight?: string;
   targetImageUri?: string;
   timestamp: number;
 }
@@ -79,6 +81,14 @@ export default function ViewEntriesScreen() {
     );
   };
 
+  const viewEntryDetails = (entry: RangeEntry) => {
+    console.log('Viewing entry details for:', entry.id);
+    router.push({
+      pathname: '/entry-details',
+      params: { entryId: entry.id }
+    });
+  };
+
   const exportData = async () => {
     console.log('Exporting data...');
     try {
@@ -116,15 +126,29 @@ export default function ViewEntriesScreen() {
   };
 
   const EntryCard = ({ entry }: { entry: RangeEntry }) => (
-    <View style={commonStyles.card}>
+    <TouchableOpacity 
+      style={commonStyles.card}
+      onPress={() => viewEntryDetails(entry)}
+      activeOpacity={0.7}
+    >
       <View style={commonStyles.row}>
         <Text style={[commonStyles.subtitle, { flex: 1 }]}>{entry.rifleName}</Text>
-        <Button
-          text="Delete"
-          onPress={() => deleteEntry(entry.id)}
-          style={[buttonStyles.backButton, { width: 80, height: 35 }]}
-          textStyle={{ fontSize: 12 }}
-        />
+        <TouchableOpacity
+          onPress={(e) => {
+            e.stopPropagation();
+            deleteEntry(entry.id);
+          }}
+          style={{
+            backgroundColor: colors.error,
+            borderRadius: 6,
+            paddingHorizontal: 12,
+            paddingVertical: 6,
+          }}
+        >
+          <Text style={[commonStyles.text, { fontSize: 12, marginBottom: 0 }]}>
+            Delete
+          </Text>
+        </TouchableOpacity>
       </View>
       
       <Text style={commonStyles.text}>Date: {entry.date}</Text>
@@ -141,6 +165,10 @@ export default function ViewEntriesScreen() {
           Windage: {entry.windageMOA} MOA
         </Text>
       </View>
+
+      {entry.bullGrainWeight && (
+        <Text style={commonStyles.text}>Bull Grain Weight: {entry.bullGrainWeight}</Text>
+      )}
 
       {entry.score && (
         <View style={{
@@ -160,12 +188,41 @@ export default function ViewEntriesScreen() {
         </View>
       )}
 
+      {entry.shotScores && entry.shotScores.length > 0 && (
+        <View style={{
+          backgroundColor: colors.secondary,
+          borderRadius: 6,
+          padding: 8,
+          marginVertical: 4
+        }}>
+          <Text style={[commonStyles.text, { 
+            fontSize: 14, 
+            marginBottom: 4,
+            textAlign: 'center'
+          }]}>
+            Shot Scores ({entry.shotScores.length} shots)
+          </Text>
+          <Text style={[commonStyles.text, { 
+            fontSize: 12, 
+            marginBottom: 0,
+            textAlign: 'center'
+          }]}>
+            {entry.shotScores.join(', ')}
+          </Text>
+        </View>
+      )}
+
       {entry.targetImageUri && (
         <View style={{ marginVertical: 10 }}>
           <Text style={[commonStyles.text, { marginBottom: 8, textAlign: 'left' }]}>
             Target Photo:
           </Text>
-          <TouchableOpacity onPress={() => openImageModal(entry.targetImageUri!)}>
+          <TouchableOpacity 
+            onPress={(e) => {
+              e.stopPropagation();
+              openImageModal(entry.targetImageUri!);
+            }}
+          >
             <Image 
               source={{ uri: entry.targetImageUri }} 
               style={{ 
@@ -191,12 +248,22 @@ export default function ViewEntriesScreen() {
         </View>
       )}
       
-      {entry.notes && (
-        <Text style={[commonStyles.text, { fontStyle: 'italic', marginTop: 8, textAlign: 'left' }]}>
-          Notes: {entry.notes}
+      <View style={{
+        backgroundColor: colors.primary,
+        borderRadius: 6,
+        padding: 8,
+        marginTop: 10,
+        alignItems: 'center'
+      }}>
+        <Text style={[commonStyles.text, { 
+          fontSize: 14, 
+          marginBottom: 0,
+          color: colors.text
+        }]}>
+          Tap to view full details
         </Text>
-      )}
-    </View>
+      </View>
+    </TouchableOpacity>
   );
 
   if (loading) {

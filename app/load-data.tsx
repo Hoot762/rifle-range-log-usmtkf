@@ -1,10 +1,10 @@
-import { router } from 'expo-router';
+import Button from '../components/Button';
 import { useState } from 'react';
 import { Text, View, SafeAreaView, ScrollView, Alert, TextInput } from 'react-native';
 import Icon from '../components/Icon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
-import Button from '../components/Button';
+import { router } from 'expo-router';
 
 interface RangeEntry {
   id: string;
@@ -16,6 +16,8 @@ interface RangeEntry {
   windageMOA: string;
   notes: string;
   score?: string;
+  shotScores?: number[];
+  bullGrainWeight?: string;
   targetImageUri?: string;
   timestamp: number;
 }
@@ -23,7 +25,7 @@ interface RangeEntry {
 export default function LoadDataScreen() {
   console.log('LoadDataScreen rendered');
 
-  const [jsonInput, setJsonInput] = useState('');
+  const [jsonData, setJsonData] = useState('');
 
   const loadSampleData = async () => {
     console.log('Loading sample data...');
@@ -37,40 +39,34 @@ export default function LoadDataScreen() {
         distance: '100 yards',
         elevationMOA: '2.5',
         windageMOA: '0.75',
-        notes: 'Good grouping, slight wind from left',
-        score: '95/100',
+        notes: 'Good conditions, light wind from the east',
+        score: '185/200',
+        shotScores: [9, 10, 8, 9, 10, 9, 8, 10, 9, 10],
+        bullGrainWeight: '168 gr',
         timestamp: Date.now() - 86400000,
       },
       {
         id: '2',
-        date: '2024-01-10',
-        rifleName: 'AR-15',
-        rifleCalibber: '5.56 NATO',
+        date: '2024-01-20',
+        rifleName: 'AR-15 Custom',
+        rifleCalibber: '.223 Remington',
         distance: '200 yards',
         elevationMOA: '4.0',
         windageMOA: '1.25',
-        notes: 'Testing new scope, need to adjust windage',
-        score: '87/100',
-        timestamp: Date.now() - 172800000,
-      },
-      {
-        id: '3',
-        date: '2024-01-05',
-        rifleName: 'Savage 110',
-        rifleCalibber: '.270 Winchester',
-        distance: '300 yards',
-        elevationMOA: '6.5',
-        windageMOA: '0.5',
-        notes: 'Long range practice, excellent conditions',
-        score: '180/200',
-        timestamp: Date.now() - 259200000,
+        notes: 'Windy conditions, had to adjust for crosswind',
+        score: '92/100',
+        shotScores: [8, 9, 10, 9, 8, 10, 9, 8, 9, 10, 8, 9],
+        bullGrainWeight: '55 gr',
+        timestamp: Date.now() - 43200000,
       }
     ];
 
     try {
       await AsyncStorage.setItem('rangeEntries', JSON.stringify(sampleEntries));
       console.log('Sample data loaded successfully');
-      Alert.alert('Success', 'Sample data loaded successfully!');
+      Alert.alert('Success', 'Sample data loaded successfully!', [
+        { text: 'OK', onPress: () => router.back() }
+      ]);
     } catch (error) {
       console.error('Error loading sample data:', error);
       Alert.alert('Error', 'Failed to load sample data');
@@ -78,15 +74,15 @@ export default function LoadDataScreen() {
   };
 
   const loadFromJson = async () => {
-    console.log('Loading data from JSON input...');
+    console.log('Loading data from JSON...');
     
-    if (!jsonInput.trim()) {
+    if (!jsonData.trim()) {
       Alert.alert('Error', 'Please enter JSON data');
       return;
     }
 
     try {
-      const parsedData = JSON.parse(jsonInput);
+      const parsedData = JSON.parse(jsonData);
       
       if (!Array.isArray(parsedData)) {
         Alert.alert('Error', 'JSON data must be an array of entries');
@@ -94,10 +90,9 @@ export default function LoadDataScreen() {
       }
 
       // Validate the structure of each entry
-      const validEntries = parsedData.filter(entry => {
-        return entry.id && entry.date && entry.rifleName && 
-               entry.distance && entry.elevationMOA && entry.windageMOA;
-      });
+      const validEntries = parsedData.filter(entry => 
+        entry.id && entry.rifleName && entry.date && entry.distance
+      );
 
       if (validEntries.length === 0) {
         Alert.alert('Error', 'No valid entries found in JSON data');
@@ -109,9 +104,9 @@ export default function LoadDataScreen() {
       
       Alert.alert(
         'Success', 
-        `Loaded ${validEntries.length} entries from JSON data!`
+        `Loaded ${validEntries.length} entries from JSON data!`,
+        [{ text: 'OK', onPress: () => router.back() }]
       );
-      setJsonInput('');
     } catch (error) {
       console.error('Error parsing JSON:', error);
       Alert.alert('Error', 'Invalid JSON format. Please check your data.');
@@ -119,6 +114,8 @@ export default function LoadDataScreen() {
   };
 
   const clearAllData = async () => {
+    console.log('Clearing all data...');
+    
     Alert.alert(
       'Clear All Data',
       'Are you sure you want to delete all range entries? This action cannot be undone.',
@@ -130,7 +127,7 @@ export default function LoadDataScreen() {
           onPress: async () => {
             try {
               await AsyncStorage.removeItem('rangeEntries');
-              console.log('All data cleared');
+              console.log('All data cleared successfully');
               Alert.alert('Success', 'All data has been cleared');
             } catch (error) {
               console.error('Error clearing data:', error);
@@ -157,8 +154,8 @@ export default function LoadDataScreen() {
 
         <View style={commonStyles.card}>
           <Text style={commonStyles.subtitle}>Sample Data</Text>
-          <Text style={[commonStyles.text, { marginBottom: 15, textAlign: 'left' }]}>
-            Load some sample range entries to get started with the app.
+          <Text style={commonStyles.text}>
+            Load sample range entries to test the app functionality.
           </Text>
           <Button
             text="Load Sample Data"
@@ -169,31 +166,35 @@ export default function LoadDataScreen() {
 
         <View style={commonStyles.card}>
           <Text style={commonStyles.subtitle}>Import from JSON</Text>
-          <Text style={[commonStyles.text, { marginBottom: 15, textAlign: 'left' }]}>
-            Paste JSON data exported from another device or backup.
+          <Text style={commonStyles.text}>
+            Paste JSON data below to import your range entries.
           </Text>
           
           <Text style={commonStyles.label}>JSON Data</Text>
           <TextInput
-            style={[commonStyles.input, { height: 120, textAlignVertical: 'top' }]}
-            value={jsonInput}
-            onChangeText={setJsonInput}
-            placeholder="Paste your JSON data here..."
+            style={[commonStyles.input, { 
+              height: 120, 
+              textAlignVertical: 'top',
+              fontFamily: 'monospace'
+            }]}
+            value={jsonData}
+            onChangeText={setJsonData}
+            placeholder='[{"id":"1","rifleName":"My Rifle",...}]'
             placeholderTextColor={colors.grey}
             multiline
           />
           
           <Button
-            text="Import Data"
+            text="Import JSON Data"
             onPress={loadFromJson}
             style={buttonStyles.accent}
           />
         </View>
 
         <View style={commonStyles.card}>
-          <Text style={commonStyles.subtitle}>Clear All Data</Text>
-          <Text style={[commonStyles.text, { marginBottom: 15, textAlign: 'left' }]}>
-            Remove all stored range entries from this device.
+          <Text style={commonStyles.subtitle}>Clear Data</Text>
+          <Text style={commonStyles.text}>
+            Remove all stored range entries from the app.
           </Text>
           <Button
             text="Clear All Data"

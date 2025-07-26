@@ -19,6 +19,8 @@ interface RangeEntry {
   windageMOA: string;
   notes: string;
   score: string;
+  shotScores: number[];
+  bullGrainWeight: string;
   targetImageUri?: string;
   timestamp: number;
 }
@@ -35,12 +37,21 @@ export default function AddEntryScreen() {
   const [windageMOA, setWindageMOA] = useState('');
   const [notes, setNotes] = useState('');
   const [score, setScore] = useState('');
+  const [bullGrainWeight, setBullGrainWeight] = useState('');
+  const [shotScores, setShotScores] = useState<string[]>(Array(12).fill(''));
   const [targetImageUri, setTargetImageUri] = useState<string | null>(null);
 
   const onDateChange = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || date;
     setShowDatePicker(Platform.OS === 'ios');
     setDate(currentDate);
+  };
+
+  const updateShotScore = (index: number, value: string) => {
+    const newScores = [...shotScores];
+    newScores[index] = value;
+    setShotScores(newScores);
+    console.log(`Updated shot ${index + 1} to ${value}`);
   };
 
   const pickImage = async () => {
@@ -118,6 +129,13 @@ export default function AddEntryScreen() {
       return;
     }
 
+    // Convert shot scores to numbers, filtering out empty values
+    const validShotScores = shotScores
+      .map(score => score.trim())
+      .filter(score => score !== '')
+      .map(score => parseFloat(score))
+      .filter(score => !isNaN(score));
+
     const entry: RangeEntry = {
       id: Date.now().toString(),
       date: date.toISOString().split('T')[0],
@@ -128,6 +146,8 @@ export default function AddEntryScreen() {
       windageMOA: windageMOA.trim(),
       notes: notes.trim(),
       score: score.trim(),
+      shotScores: validShotScores,
+      bullGrainWeight: bullGrainWeight.trim(),
       targetImageUri: targetImageUri || undefined,
       timestamp: Date.now(),
     };
@@ -152,6 +172,36 @@ export default function AddEntryScreen() {
   const goBack = () => {
     console.log('Going back to home screen');
     router.back();
+  };
+
+  const renderShotInputs = () => {
+    const rows = [];
+    for (let i = 0; i < 12; i += 3) {
+      rows.push(
+        <View key={i} style={commonStyles.row}>
+          {[0, 1, 2].map(offset => {
+            const index = i + offset;
+            if (index >= 12) return null;
+            return (
+              <View key={index} style={{ width: '30%' }}>
+                <Text style={[commonStyles.label, { fontSize: 14 }]}>
+                  Shot {index + 1}
+                </Text>
+                <TextInput
+                  style={[commonStyles.input, { marginVertical: 4 }]}
+                  value={shotScores[index]}
+                  onChangeText={(value) => updateShotScore(index, value)}
+                  placeholder="0"
+                  placeholderTextColor={colors.grey}
+                  keyboardType="numeric"
+                />
+              </View>
+            );
+          })}
+        </View>
+      );
+    }
+    return rows;
   };
 
   return (
@@ -234,7 +284,16 @@ export default function AddEntryScreen() {
             </View>
           </View>
 
-          <Text style={commonStyles.label}>Score (Points)</Text>
+          <Text style={commonStyles.label}>Bull Grain Weight</Text>
+          <TextInput
+            style={commonStyles.input}
+            value={bullGrainWeight}
+            onChangeText={setBullGrainWeight}
+            placeholder="e.g., 168 gr"
+            placeholderTextColor={colors.grey}
+          />
+
+          <Text style={commonStyles.label}>Overall Score (Points)</Text>
           <TextInput
             style={commonStyles.input}
             value={score}
@@ -243,7 +302,12 @@ export default function AddEntryScreen() {
             placeholderTextColor={colors.grey}
           />
 
-          <Text style={commonStyles.label}>Target Photo</Text>
+          <Text style={[commonStyles.label, { marginTop: 15, marginBottom: 10 }]}>
+            Individual Shot Scores (up to 12 shots)
+          </Text>
+          {renderShotInputs()}
+
+          <Text style={[commonStyles.label, { marginTop: 15 }]}>Target Photo</Text>
           {targetImageUri ? (
             <View style={{ marginVertical: 10 }}>
               <Image 
