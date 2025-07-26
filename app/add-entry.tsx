@@ -52,10 +52,12 @@ export default function AddEntryScreen() {
       return;
     }
     
-    const currentDate = selectedDate || date;
-    setShowDatePicker(Platform.OS === 'ios'); // Keep open on iOS, close on Android
-    setDate(currentDate);
-    console.log('Date updated to:', currentDate.toDateString());
+    if (event.type === 'set' && selectedDate) {
+      // Date was selected, update the date and close the picker
+      setDate(selectedDate);
+      setShowDatePicker(false);
+      console.log('Date updated to:', selectedDate.toDateString());
+    }
   };
 
   const updateShotScore = (index: number, value: string) => {
