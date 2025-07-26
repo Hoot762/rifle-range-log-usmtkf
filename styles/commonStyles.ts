@@ -1,24 +1,38 @@
 import { StyleSheet, ViewStyle, TextStyle } from 'react-native';
 
 export const colors = {
-  primary: '#162456',    // Material Blue
-  secondary: '#193cb8',  // Darker Blue
-  accent: '#64B5F6',     // Light Blue
-  background: '#101824',  // Keeping dark background
-  backgroundAlt: '#162133',  // Keeping dark background
-  text: '#e3e3e3',       // Keeping light text
-  grey: '#90CAF9',       // Light Blue Grey
-  card: '#193cb8',       // Keeping dark card background
+  primary: '#1B4332',      // Dark green
+  secondary: '#2D5A3D',    // Medium green
+  accent: '#FF8C00',       // Orange accent
+  background: '#0F2419',   // Very dark green
+  backgroundAlt: '#1B4332', // Dark green for cards
+  text: '#FFFFFF',         // White text
+  grey: '#6C757D',         // Grey accent
+  card: '#2D5A3D',         // Medium green for cards
+  success: '#40916C',      // Success green
+  error: '#DC3545',        // Error red
+  inputBackground: '#2D5A3D',
+  border: '#40916C',
 };
 
 export const buttonStyles = StyleSheet.create({
-  instructionsButton: {
+  primary: {
     backgroundColor: colors.primary,
     alignSelf: 'center',
     width: '100%',
   },
+  secondary: {
+    backgroundColor: colors.secondary,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  accent: {
+    backgroundColor: colors.accent,
+    alignSelf: 'center',
+    width: '100%',
+  },
   backButton: {
-    backgroundColor: colors.backgroundAlt,
+    backgroundColor: colors.grey,
     alignSelf: 'center',
     width: '100%',
   },
@@ -44,13 +58,25 @@ export const commonStyles = StyleSheet.create({
     justifyContent: 'center',
     maxWidth: 800,
     width: '100%',
+    paddingHorizontal: 20,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '800',
     textAlign: 'center',
     color: colors.text,
-    marginBottom: 10
+    marginBottom: 20,
+  },
+  subtitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 15,
   },
   text: {
     fontSize: 16,
@@ -64,26 +90,56 @@ export const commonStyles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     paddingHorizontal: 20,
+    marginBottom: 20,
   },
   buttonContainer: {
     width: '100%',
     alignItems: 'center',
     paddingHorizontal: 20,
+    marginBottom: 15,
   },
   card: {
-    backgroundColor: colors.backgroundAlt,
-    borderColor: colors.grey,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
     borderWidth: 1,
-    borderRadius: 10,
-    padding: 10,
+    borderRadius: 12,
+    padding: 16,
     marginVertical: 8,
     width: '100%',
-    boxShadow: '0px 2px 3px rgba(0, 0, 0, 0.1)',
-    elevation: 2,
+    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.3)',
+    elevation: 4,
+  },
+  input: {
+    backgroundColor: colors.inputBackground,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    marginVertical: 8,
+    width: '100%',
+    color: colors.text,
+    fontSize: 16,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 5,
+    alignSelf: 'flex-start',
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 10,
+  },
+  halfWidth: {
+    width: '48%',
   },
   icon: {
     width: 60,
     height: 60,
-    tintColor: "white",
+    tintColor: colors.text,
   },
 });

@@ -1,63 +1,65 @@
-import { Text, View, Image, SafeAreaView } from 'react-native';
+import { Text, View, SafeAreaView } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import Button from '../components/Button';
+import Icon from '../components/Icon';
 import { commonStyles, buttonStyles } from '../styles/commonStyles';
 
-// Declare the window properties we're using
-declare global {
-  interface Window {
-    handleInstallClick: () => void;
-    canInstall: boolean;
-  }
-}
+export default function HomeScreen() {
+  console.log('HomeScreen rendered');
 
-export default function MainScreen() {
-  const [canInstall, setCanInstall] = useState(false);
+  const navigateToAddEntry = () => {
+    console.log('Navigating to add entry screen');
+    router.push('/add-entry');
+  };
 
-  useEffect(() => {
-    // Initial check
-    setCanInstall(false);
+  const navigateToViewEntries = () => {
+    console.log('Navigating to view entries screen');
+    router.push('/view-entries');
+  };
 
-    // Set up polling interval
-    const intervalId = setInterval(() => {
-      if(window.canInstall) {
-        setCanInstall(true);
-        clearInterval(intervalId);
-      }
-    }, 500);
-
-    // Cleanup
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, []);
+  const navigateToLoadData = () => {
+    console.log('Navigating to load data screen');
+    router.push('/load-data');
+  };
 
   return (
-    <View style={commonStyles.container}>
-      <View style={commonStyles.content}>
-        <Image
-          source={require('../assets/images/final_quest_240x240.png')}
-          style={{ width: 180, height: 180 }}
-          resizeMode="contain"
-        />
-        <Text style={commonStyles.title}>This is a placeholder app.</Text>
-        <Text style={commonStyles.text}>Your app will be displayed here when it's ready.</Text>
-        <View style={commonStyles.buttonContainer}>
-          {canInstall && (
-            <Button
-              text="Install App"
-              onPress={() => {
-                if(window.handleInstallClick) {
-                  window.handleInstallClick();
-                  setCanInstall(false); // Update state after installation
-                }
-              }}
-              style={buttonStyles.instructionsButton}
-            />
-          )}
+    <SafeAreaView style={commonStyles.wrapper}>
+      <View style={commonStyles.container}>
+        <View style={commonStyles.content}>
+          <Icon name="rifle" size={80} style={{ marginBottom: 20 }} />
+          <Text style={commonStyles.title}>Rifle Range Logger</Text>
+          <Text style={commonStyles.text}>
+            Track your rifle range data including scope settings, distances, and performance metrics.
+          </Text>
+          
+          <View style={commonStyles.section}>
+            <View style={commonStyles.buttonContainer}>
+              <Button
+                text="Add New Entry"
+                onPress={navigateToAddEntry}
+                style={buttonStyles.primary}
+              />
+            </View>
+            
+            <View style={commonStyles.buttonContainer}>
+              <Button
+                text="View Entries"
+                onPress={navigateToViewEntries}
+                style={buttonStyles.secondary}
+              />
+            </View>
+            
+            <View style={commonStyles.buttonContainer}>
+              <Button
+                text="Load Data"
+                onPress={navigateToLoadData}
+                style={buttonStyles.accent}
+              />
+            </View>
+          </View>
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
