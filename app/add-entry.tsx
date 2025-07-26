@@ -1,4 +1,4 @@
-import { Text, View, SafeAreaView, ScrollView, TextInput, Alert } from 'react-native';
+import { Text, View, SafeAreaView, ScrollView, TextInput, Alert, Image, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import Button from '../components/Button';
@@ -7,6 +7,7 @@ import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as ImagePicker from 'expo-image-picker';
 
 interface RangeEntry {
   id: string;
@@ -17,6 +18,8 @@ interface RangeEntry {
   elevationMOA: string;
   windageMOA: string;
   notes: string;
+  score: string;
+  targetImageUri?: string;
   timestamp: number;
 }
 
@@ -31,11 +34,80 @@ export default function AddEntryScreen() {
   const [elevationMOA, setElevationMOA] = useState('');
   const [windageMOA, setWindageMOA] = useState('');
   const [notes, setNotes] = useState('');
+  const [score, setScore] = useState('');
+  const [targetImageUri, setTargetImageUri] = useState<string | null>(null);
 
   const onDateChange = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || date;
     setShowDatePicker(Platform.OS === 'ios');
     setDate(currentDate);
+  };
+
+  const pickImage = async () => {
+    console.log('Opening image picker...');
+    
+    // Request permission
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (permissionResult.granted === false) {
+      Alert.alert('Permission Required', 'Permission to access camera roll is required!');
+      return;
+    }
+
+    // Show action sheet to choose between camera and gallery
+    Alert.alert(
+      'Select Image',
+      'Choose how you want to add a target photo',
+      [
+        { text: 'Camera', onPress: () => openCamera() },
+        { text: 'Gallery', onPress: () => openGallery() },
+        { text: 'Cancel', style: 'cancel' }
+      ]
+    );
+  };
+
+  const openCamera = async () => {
+    console.log('Opening camera...');
+    
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    
+    if (permissionResult.granted === false) {
+      Alert.alert('Permission Required', 'Permission to access camera is required!');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.7,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setTargetImageUri(result.assets[0].uri);
+      console.log('Image captured:', result.assets[0].uri);
+    }
+  };
+
+  const openGallery = async () => {
+    console.log('Opening gallery...');
+    
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.7,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setTargetImageUri(result.assets[0].uri);
+      console.log('Image selected:', result.assets[0].uri);
+    }
+  };
+
+  const removeImage = () => {
+    setTargetImageUri(null);
+    console.log('Image removed');
   };
 
   const saveEntry = async () => {
@@ -55,6 +127,8 @@ export default function AddEntryScreen() {
       elevationMOA: elevationMOA.trim(),
       windageMOA: windageMOA.trim(),
       notes: notes.trim(),
+      score: score.trim(),
+      targetImageUri: targetImageUri || undefined,
       timestamp: Date.now(),
     };
 
@@ -159,6 +233,63 @@ export default function AddEntryScreen() {
               />
             </View>
           </View>
+
+          <Text style={commonStyles.label}>Score (Points)</Text>
+          <TextInput
+            style={commonStyles.input}
+            value={score}
+            onChangeText={setScore}
+            placeholder="e.g., 95, 180/200"
+            placeholderTextColor={colors.grey}
+          />
+
+          <Text style={commonStyles.label}>Target Photo</Text>
+          {targetImageUri ? (
+            <View style={{ marginVertical: 10 }}>
+              <Image 
+                source={{ uri: targetImageUri }} 
+                style={{ 
+                  width: '100%', 
+                  height: 200, 
+                  borderRadius: 8,
+                  marginBottom: 10
+                }} 
+                resizeMode="cover"
+              />
+              <View style={commonStyles.row}>
+                <Button
+                  text="Change Photo"
+                  onPress={pickImage}
+                  style={[buttonStyles.secondary, { flex: 1, marginRight: 5 }]}
+                />
+                <Button
+                  text="Remove"
+                  onPress={removeImage}
+                  style={[buttonStyles.backButton, { flex: 1, marginLeft: 5 }]}
+                />
+              </View>
+            </View>
+          ) : (
+            <TouchableOpacity 
+              style={{
+                backgroundColor: colors.inputBackground,
+                borderColor: colors.border,
+                borderWidth: 1,
+                borderStyle: 'dashed',
+                borderRadius: 8,
+                padding: 40,
+                marginVertical: 10,
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              onPress={pickImage}
+            >
+              <Icon name="camera" size={40} style={{ marginBottom: 10 }} />
+              <Text style={[commonStyles.text, { color: colors.grey }]}>
+                Tap to add target photo
+              </Text>
+            </TouchableOpacity>
+          )}
 
           <Text style={commonStyles.label}>Notes</Text>
           <TextInput

@@ -1,4 +1,4 @@
-import { Text, View, SafeAreaView, ScrollView, Alert } from 'react-native';
+import { Text, View, SafeAreaView, ScrollView, Alert, Image, TouchableOpacity, Modal } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import Button from '../components/Button';
@@ -15,6 +15,8 @@ interface RangeEntry {
   elevationMOA: string;
   windageMOA: string;
   notes: string;
+  score?: string;
+  targetImageUri?: string;
   timestamp: number;
 }
 
@@ -23,6 +25,8 @@ export default function ViewEntriesScreen() {
 
   const [entries, setEntries] = useState<RangeEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageModalVisible, setImageModalVisible] = useState(false);
 
   useEffect(() => {
     loadEntries();
@@ -96,6 +100,16 @@ export default function ViewEntriesScreen() {
     }
   };
 
+  const openImageModal = (imageUri: string) => {
+    setSelectedImage(imageUri);
+    setImageModalVisible(true);
+  };
+
+  const closeImageModal = () => {
+    setImageModalVisible(false);
+    setSelectedImage(null);
+  };
+
   const goBack = () => {
     console.log('Going back to home screen');
     router.back();
@@ -127,9 +141,58 @@ export default function ViewEntriesScreen() {
           Windage: {entry.windageMOA} MOA
         </Text>
       </View>
+
+      {entry.score && (
+        <View style={{
+          backgroundColor: colors.accent,
+          borderRadius: 6,
+          padding: 8,
+          marginVertical: 8,
+          alignItems: 'center'
+        }}>
+          <Text style={[commonStyles.text, { 
+            color: colors.background, 
+            fontWeight: 'bold',
+            marginBottom: 0
+          }]}>
+            Score: {entry.score}
+          </Text>
+        </View>
+      )}
+
+      {entry.targetImageUri && (
+        <View style={{ marginVertical: 10 }}>
+          <Text style={[commonStyles.text, { marginBottom: 8, textAlign: 'left' }]}>
+            Target Photo:
+          </Text>
+          <TouchableOpacity onPress={() => openImageModal(entry.targetImageUri!)}>
+            <Image 
+              source={{ uri: entry.targetImageUri }} 
+              style={{ 
+                width: '100%', 
+                height: 150, 
+                borderRadius: 8,
+                borderWidth: 2,
+                borderColor: colors.border
+              }} 
+              resizeMode="cover"
+            />
+            <View style={{
+              position: 'absolute',
+              bottom: 8,
+              right: 8,
+              backgroundColor: 'rgba(0,0,0,0.7)',
+              borderRadius: 4,
+              padding: 4
+            }}>
+              <Icon name="expand" size={16} />
+            </View>
+          </TouchableOpacity>
+        </View>
+      )}
       
       {entry.notes && (
-        <Text style={[commonStyles.text, { fontStyle: 'italic', marginTop: 8 }]}>
+        <Text style={[commonStyles.text, { fontStyle: 'italic', marginTop: 8, textAlign: 'left' }]}>
           Notes: {entry.notes}
         </Text>
       )}
@@ -187,6 +250,48 @@ export default function ViewEntriesScreen() {
           />
         </View>
       </ScrollView>
+
+      {/* Image Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={imageModalVisible}
+        onRequestClose={closeImageModal}
+      >
+        <View style={{
+          flex: 1,
+          backgroundColor: 'rgba(0,0,0,0.9)',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}>
+          <TouchableOpacity 
+            style={{
+              position: 'absolute',
+              top: 50,
+              right: 20,
+              zIndex: 1,
+              backgroundColor: 'rgba(0,0,0,0.7)',
+              borderRadius: 20,
+              padding: 10
+            }}
+            onPress={closeImageModal}
+          >
+            <Icon name="close" size={24} />
+          </TouchableOpacity>
+          
+          {selectedImage && (
+            <Image 
+              source={{ uri: selectedImage }} 
+              style={{ 
+                width: '90%', 
+                height: '70%',
+                borderRadius: 8
+              }} 
+              resizeMode="contain"
+            />
+          )}
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
