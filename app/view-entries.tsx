@@ -1,10 +1,13 @@
-import { Text, View, SafeAreaView, ScrollView, Alert, Image, TouchableOpacity, Modal } from 'react-native';
+import { Text, View, SafeAreaView, ScrollView, Alert, Image, TouchableOpacity, Modal, TextInput } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import Button from '../components/Button';
 import Icon from '../components/Icon';
 import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import * as DocumentPicker from 'expo-document-picker';
 
 interface RangeEntry {
   id: string;
@@ -30,6 +33,8 @@ export default function ViewEntriesScreen() {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [exportModalVisible, setExportModalVisible] = useState(false);
+  const [fileName, setFileName] = useState('range_data_export');
 
   useEffect(() => {
     loadEntries();
@@ -91,23 +96,75 @@ export default function ViewEntriesScreen() {
   };
 
   const exportData = async () => {
-    console.log('Exporting data...');
+    console.log('Opening export options...');
+    setExportModalVisible(true);
+  };
+
+  const performExport = async (exportType: 'share' | 'save') => {
+    console.log(`Performing export with type: ${exportType}`);
     try {
       const data = await AsyncStorage.getItem('rangeEntries');
-      if (data) {
-        // In a real app, you would use expo-file-system to save to a file
-        // For now, we'll show the data in an alert
-        Alert.alert(
-          'Export Data',
-          `Found ${entries.length} entries. Data is stored locally on your device.`,
-          [{ text: 'OK' }]
-        );
-      } else {
+      if (!data || entries.length === 0) {
         Alert.alert('No Data', 'No entries found to export');
+        return;
       }
+
+      // Create formatted export data
+      const exportData = {
+        exportDate: new Date().toISOString(),
+        totalEntries: entries.length,
+        entries: entries
+      };
+
+      const jsonString = JSON.stringify(exportData, null, 2);
+      const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9_-]/g, '_');
+      const fullFileName = `${sanitizedFileName}.json`;
+
+      if (exportType === 'share') {
+        // Create temporary file and share it
+        const fileUri = FileSystem.documentDirectory + fullFileName;
+        await FileSystem.writeAsStringAsync(fileUri, jsonString);
+        
+        console.log('File created at:', fileUri);
+        
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(fileUri, {
+            mimeType: 'application/json',
+            dialogTitle: 'Save Range Data Export'
+          });
+          console.log('File shared successfully');
+        } else {
+          Alert.alert('Error', 'Sharing is not available on this device');
+        }
+      } else {
+        // Save to user-selected location (this will open the system file picker)
+        const fileUri = FileSystem.documentDirectory + fullFileName;
+        await FileSystem.writeAsStringAsync(fileUri, jsonString);
+        
+        console.log('File created at:', fileUri);
+        
+        // Use sharing as a way to let user save to their preferred location
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(fileUri, {
+            mimeType: 'application/json',
+            dialogTitle: 'Save Range Data Export'
+          });
+          console.log('File save dialog opened');
+        } else {
+          Alert.alert('Error', 'File saving is not available on this device');
+        }
+      }
+
+      setExportModalVisible(false);
+      Alert.alert(
+        'Export Complete',
+        `Successfully exported ${entries.length} entries to ${fullFileName}`,
+        [{ text: 'OK' }]
+      );
+
     } catch (error) {
       console.error('Error exporting data:', error);
-      Alert.alert('Error', 'Failed to export data');
+      Alert.alert('Error', 'Failed to export data. Please try again.');
     }
   };
 
@@ -119,6 +176,10 @@ export default function ViewEntriesScreen() {
   const closeImageModal = () => {
     setImageModalVisible(false);
     setSelectedImage(null);
+  };
+
+  const closeExportModal = () => {
+    setExportModalVisible(false);
   };
 
   const goBack = () => {
@@ -359,6 +420,100 @@ export default function ViewEntriesScreen() {
           />
         </View>
       </ScrollView>
+
+      {/* Export Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={exportModalVisible}
+        onRequestClose={closeExportModal}
+      >
+        <View style={{
+          flex: 1,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 20
+        }}>
+          <View style={{
+            backgroundColor: colors.background,
+            borderRadius: 12,
+            padding: 20,
+            width: '100%',
+            maxWidth: 400,
+            borderWidth: 2,
+            borderColor: colors.border
+          }}>
+            <View style={{ alignItems: 'center', marginBottom: 20 }}>
+              <Icon name="download" size={40} style={{ marginBottom: 10 }} />
+              <Text style={[commonStyles.title, { fontSize: 20, marginBottom: 10 }]}>
+                Export Data
+              </Text>
+              <Text style={[commonStyles.text, { textAlign: 'center', color: colors.grey }]}>
+                Export {entries.length} entries to a JSON file
+              </Text>
+            </View>
+
+            <View style={{ marginBottom: 20 }}>
+              <Text style={[commonStyles.text, { marginBottom: 8 }]}>
+                File Name:
+              </Text>
+              <TextInput
+                style={[commonStyles.input, { marginBottom: 0 }]}
+                value={fileName}
+                onChangeText={setFileName}
+                placeholder="Enter file name"
+                placeholderTextColor={colors.grey}
+              />
+              <Text style={[commonStyles.text, { 
+                fontSize: 12, 
+                color: colors.grey, 
+                marginTop: 4,
+                marginBottom: 0 
+              }]}>
+                .json extension will be added automatically
+              </Text>
+            </View>
+
+            <View style={{ marginBottom: 20 }}>
+              <Button
+                text="Share File"
+                onPress={() => performExport('share')}
+                style={[buttonStyles.primary, { marginBottom: 10 }]}
+              />
+              <Text style={[commonStyles.text, { 
+                fontSize: 12, 
+                color: colors.grey, 
+                textAlign: 'center',
+                marginBottom: 15
+              }]}>
+                Opens share dialog to save or send the file
+              </Text>
+
+              <Button
+                text="Save to Device"
+                onPress={() => performExport('save')}
+                style={buttonStyles.accent}
+              />
+              <Text style={[commonStyles.text, { 
+                fontSize: 12, 
+                color: colors.grey, 
+                textAlign: 'center',
+                marginTop: 4,
+                marginBottom: 0
+              }]}>
+                Choose where to save the file on your device
+              </Text>
+            </View>
+
+            <Button
+              text="Cancel"
+              onPress={closeExportModal}
+              style={buttonStyles.secondary}
+            />
+          </View>
+        </View>
+      </Modal>
 
       {/* Image Modal */}
       <Modal
