@@ -118,9 +118,23 @@ export default function ViewEntriesScreen() {
 
   const convertImageToBase64 = async (imageUri: string): Promise<string | null> => {
     try {
+      console.log('Converting image to base64:', imageUri);
+      const fileInfo = await FileSystem.getInfoAsync(imageUri);
+      if (!fileInfo.exists) {
+        console.log('Image file does not exist:', imageUri);
+        return null;
+      }
+
       const base64 = await FileSystem.readAsStringAsync(imageUri, {
         encoding: FileSystem.EncodingType.Base64,
       });
+      
+      if (!base64 || base64.length === 0) {
+        console.log('Failed to read image as base64:', imageUri);
+        return null;
+      }
+
+      console.log(`Successfully converted image to base64, length: ${base64.length}`);
       return base64;
     } catch (error) {
       console.error('Error converting image to base64:', error);
@@ -146,33 +160,77 @@ export default function ViewEntriesScreen() {
 
       console.log('Converting images to base64...');
       const entriesWithImages: Array<RangeEntry & { targetImageBase64?: string }> = [];
+      let successfulImageConversions = 0;
+      let failedImageConversions = 0;
       
       for (const entry of entries) {
-        const entryWithImage = { ...entry };
+        console.log(`Processing entry: ${entry.entryName || entry.id}`);
+        
+        // Create a clean copy of the entry without the local image URI
+        const entryWithImage: RangeEntry & { targetImageBase64?: string } = {
+          id: entry.id,
+          entryName: entry.entryName,
+          date: entry.date,
+          rifleName: entry.rifleName,
+          rifleCalibber: entry.rifleCalibber,
+          distance: entry.distance,
+          elevationMOA: entry.elevationMOA,
+          windageMOA: entry.windageMOA,
+          notes: entry.notes,
+          timestamp: entry.timestamp,
+          ...(entry.score && { score: entry.score }),
+          ...(entry.shotScores && { shotScores: entry.shotScores }),
+          ...(entry.bullGrainWeight && { bullGrainWeight: entry.bullGrainWeight })
+        };
         
         if (entry.targetImageUri) {
           try {
+            console.log(`Converting image for entry ${entry.id}: ${entry.targetImageUri}`);
             const fileInfo = await FileSystem.getInfoAsync(entry.targetImageUri);
             if (fileInfo.exists) {
               const base64 = await convertImageToBase64(entry.targetImageUri);
               if (base64) {
                 entryWithImage.targetImageBase64 = base64;
-                console.log(`Converted image for entry ${entry.id} to base64`);
+                successfulImageConversions++;
+                console.log(`Successfully converted image for entry ${entry.id}`);
+              } else {
+                console.log(`Failed to convert image for entry ${entry.id}`);
+                failedImageConversions++;
               }
+            } else {
+              console.log(`Image file does not exist for entry ${entry.id}: ${entry.targetImageUri}`);
+              failedImageConversions++;
             }
           } catch (error) {
             console.error(`Error processing image for entry ${entry.id}:`, error);
+            failedImageConversions++;
           }
         }
         
         entriesWithImages.push(entryWithImage);
       }
 
+      console.log(`Image conversion complete: ${successfulImageConversions} successful, ${failedImageConversions} failed`);
+
       const exportData: ExportData = {
         exportDate: new Date().toISOString(),
         totalEntries: entries.length,
         entries: entriesWithImages
       };
+
+      // Validate the export data before stringifying
+      try {
+        const testJson = JSON.stringify(exportData);
+        console.log(`Export JSON size: ${testJson.length} characters`);
+        
+        // Test parsing to ensure it's valid
+        const testParse = JSON.parse(testJson);
+        console.log('JSON validation successful');
+      } catch (jsonError) {
+        console.error('JSON validation failed:', jsonError);
+        Alert.alert('Error', 'Failed to create valid JSON export. Please try again.');
+        return;
+      }
 
       const jsonString = JSON.stringify(exportData, null, 2);
       const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -211,9 +269,17 @@ export default function ViewEntriesScreen() {
       }
 
       setExportModalVisible(false);
+      
+      const imageMessage = successfulImageConversions > 0 
+        ? ` with ${successfulImageConversions} photos`
+        : '';
+      const failureMessage = failedImageConversions > 0 
+        ? ` (${failedImageConversions} photos failed to export)`
+        : '';
+      
       Alert.alert(
         'Export Complete',
-        `Successfully exported ${entries.length} entries with photos to ${fullFileName}`,
+        `Successfully exported ${entries.length} entries${imageMessage} to ${fullFileName}${failureMessage}`,
         [{ text: 'OK' }]
       );
 

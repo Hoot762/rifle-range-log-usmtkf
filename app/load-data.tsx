@@ -42,8 +42,13 @@ export default function LoadDataScreen() {
 
   const saveBase64Image = async (base64Data: string, entryId: string): Promise<string> => {
     try {
-      console.log('Saving base64 image for entry:', entryId);
+      console.log(`Saving base64 image for entry: ${entryId}, data length: ${base64Data.length}`);
       
+      // Validate base64 data
+      if (!base64Data || base64Data.length === 0) {
+        throw new Error('Invalid base64 data');
+      }
+
       // Create photos directory if it doesn't exist
       const photosDir = FileSystem.documentDirectory + 'photos/';
       const dirInfo = await FileSystem.getInfoAsync(photosDir);
@@ -56,12 +61,24 @@ export default function LoadDataScreen() {
       const filename = `imported_${entryId}_${Date.now()}.jpg`;
       const destinationUri = photosDir + filename;
 
+      // Clean the base64 data (remove any data URL prefix if present)
+      let cleanBase64 = base64Data;
+      if (base64Data.includes(',')) {
+        cleanBase64 = base64Data.split(',')[1];
+      }
+
       // Save the base64 data as an image file
-      await FileSystem.writeAsStringAsync(destinationUri, base64Data, {
+      await FileSystem.writeAsStringAsync(destinationUri, cleanBase64, {
         encoding: FileSystem.EncodingType.Base64,
       });
 
-      console.log('Image saved to:', destinationUri);
+      // Verify the file was created
+      const fileInfo = await FileSystem.getInfoAsync(destinationUri);
+      if (!fileInfo.exists) {
+        throw new Error('Failed to create image file');
+      }
+
+      console.log(`Image saved successfully to: ${destinationUri}, size: ${fileInfo.size} bytes`);
       return destinationUri;
     } catch (error) {
       console.error('Error saving base64 image:', error);
@@ -124,18 +141,33 @@ export default function LoadDataScreen() {
     setIsImporting(true);
 
     try {
-      const parsedData = JSON.parse(jsonInput);
+      // First, validate that the JSON is parseable
+      let parsedData;
+      try {
+        parsedData = JSON.parse(jsonInput);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        Alert.alert('Error', 'Invalid JSON format. Please check your data and try again.');
+        return;
+      }
       
       let entriesToImport: ImportEntry[] = [];
 
       // Handle both old format (direct array) and new format (with metadata)
       if (Array.isArray(parsedData)) {
         entriesToImport = parsedData;
+        console.log('Importing data in old format (direct array)');
       } else if (parsedData.entries && Array.isArray(parsedData.entries)) {
         entriesToImport = parsedData.entries;
-        console.log(`Importing data exported on: ${parsedData.exportDate}`);
+        console.log(`Importing data in new format, exported on: ${parsedData.exportDate}`);
+        console.log(`Expected entries: ${parsedData.totalEntries}, actual entries: ${entriesToImport.length}`);
       } else {
         Alert.alert('Error', 'Invalid JSON format. Expected an array of entries or export data object.');
+        return;
+      }
+
+      if (entriesToImport.length === 0) {
+        Alert.alert('Error', 'No entries found in the JSON data.');
         return;
       }
 
@@ -144,29 +176,56 @@ export default function LoadDataScreen() {
       // Process entries and handle images
       const processedEntries: RangeEntry[] = [];
       let imagesProcessed = 0;
+      let imagesFailed = 0;
 
-      for (const entry of entriesToImport) {
+      for (let i = 0; i < entriesToImport.length; i++) {
+        const entry = entriesToImport[i];
+        console.log(`Processing entry ${i + 1}/${entriesToImport.length}: ${entry.entryName || entry.id}`);
+
+        // Validate required fields
+        if (!entry.id || !entry.rifleName || !entry.date) {
+          console.log(`Skipping invalid entry: missing required fields`);
+          continue;
+        }
+
         const processedEntry: RangeEntry = {
-          ...entry,
+          id: entry.id,
           entryName: entry.entryName || `Entry ${entry.rifleName || 'Unknown'}`,
-          shotScores: entry.shotScores || undefined,
+          date: entry.date,
+          rifleName: entry.rifleName,
+          rifleCalibber: entry.rifleCalibber || '',
+          distance: entry.distance || '',
+          elevationMOA: entry.elevationMOA || '',
+          windageMOA: entry.windageMOA || '',
+          notes: entry.notes || '',
+          timestamp: entry.timestamp || Date.now(),
+          ...(entry.score && { score: entry.score }),
+          ...(entry.shotScores && Array.isArray(entry.shotScores) && { shotScores: entry.shotScores }),
+          ...(entry.bullGrainWeight && { bullGrainWeight: entry.bullGrainWeight })
         };
 
         // Handle image import
         if (entry.targetImageBase64) {
           try {
+            console.log(`Importing image for entry: ${entry.entryName || entry.id}`);
             const savedImageUri = await saveBase64Image(entry.targetImageBase64, entry.id);
             processedEntry.targetImageUri = savedImageUri;
             imagesProcessed++;
-            console.log(`Imported image for entry: ${entry.entryName}`);
+            console.log(`Successfully imported image for entry: ${entry.entryName || entry.id}`);
           } catch (error) {
             console.error(`Failed to import image for entry ${entry.id}:`, error);
+            imagesFailed++;
             // Continue without the image
             processedEntry.targetImageUri = undefined;
           }
         }
 
         processedEntries.push(processedEntry);
+      }
+
+      if (processedEntries.length === 0) {
+        Alert.alert('Error', 'No valid entries found in the JSON data.');
+        return;
       }
 
       // Get existing entries and merge
@@ -176,20 +235,35 @@ export default function LoadDataScreen() {
       // Combine existing and new entries, avoiding duplicates by ID
       const existingIds = new Set(existingEntries.map(entry => entry.id));
       const newEntries = processedEntries.filter(entry => !existingIds.has(entry.id));
+      const duplicateCount = processedEntries.length - newEntries.length;
+      
+      if (newEntries.length === 0) {
+        Alert.alert('Info', 'All entries in the JSON data already exist. No new entries were imported.');
+        return;
+      }
+
       const allEntries = [...existingEntries, ...newEntries];
 
       await AsyncStorage.setItem('rangeEntries', JSON.stringify(allEntries));
       
-      const message = imagesProcessed > 0 
-        ? `Loaded ${newEntries.length} entries with ${imagesProcessed} photos successfully!`
-        : `Loaded ${newEntries.length} entries successfully!`;
+      let message = `Successfully imported ${newEntries.length} new entries`;
+      if (imagesProcessed > 0) {
+        message += ` with ${imagesProcessed} photos`;
+      }
+      if (imagesFailed > 0) {
+        message += ` (${imagesFailed} photos failed to import)`;
+      }
+      if (duplicateCount > 0) {
+        message += `. ${duplicateCount} duplicate entries were skipped`;
+      }
+      message += '!';
       
       Alert.alert('Success', message);
       setJsonInput('');
-      console.log(`Import completed: ${newEntries.length} new entries, ${imagesProcessed} images`);
+      console.log(`Import completed: ${newEntries.length} new entries, ${imagesProcessed} images processed, ${imagesFailed} images failed, ${duplicateCount} duplicates skipped`);
     } catch (error) {
-      console.error('Error parsing/importing JSON:', error);
-      Alert.alert('Error', 'Invalid JSON format or import failed. Please check your data.');
+      console.error('Error importing JSON:', error);
+      Alert.alert('Error', 'Import failed. Please check your data and try again.');
     } finally {
       setIsImporting(false);
     }
