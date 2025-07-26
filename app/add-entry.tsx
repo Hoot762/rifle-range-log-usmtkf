@@ -19,7 +19,7 @@ interface RangeEntry {
   windageMOA: string;
   notes: string;
   score: string;
-  shotScores?: number[]; // Made optional
+  shotScores?: string[]; // Changed to string array to handle "v" entries
   bullGrainWeight: string;
   targetImageUri?: string;
   timestamp: number;
@@ -57,13 +57,42 @@ export default function AddEntryScreen() {
   };
 
   const updateShotScore = (index: number, value: string) => {
-    // Allow empty string or valid numbers (including decimals)
-    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+    // Allow empty string, valid numbers (including decimals), or "v"
+    const cleanValue = value.toLowerCase().trim();
+    if (cleanValue === '' || cleanValue === 'v' || /^\d*\.?\d*$/.test(cleanValue)) {
       const newScores = [...shotScores];
-      newScores[index] = value;
+      newScores[index] = cleanValue;
       setShotScores(newScores);
-      console.log(`Updated shot ${index + 1} to "${value}"`);
+      console.log(`Updated shot ${index + 1} to "${cleanValue}"`);
+      
+      // Auto-calculate total score if individual shots are entered
+      calculateTotalScore(newScores);
     }
+  };
+
+  const calculateTotalScore = (scores: string[]) => {
+    const validScores = scores.filter(score => score.trim() !== '');
+    if (validScores.length === 0) return;
+
+    let numericTotal = 0;
+    let vCount = 0;
+
+    validScores.forEach(score => {
+      const cleanScore = score.trim().toLowerCase();
+      if (cleanScore === 'v') {
+        vCount++;
+      } else {
+        const numValue = parseFloat(cleanScore);
+        if (!isNaN(numValue)) {
+          numericTotal += numValue;
+        }
+      }
+    });
+
+    // Calculate total with v's as decimal points
+    const totalScore = numericTotal + (vCount * 0.1);
+    setScore(totalScore.toString());
+    console.log(`Calculated total score: ${totalScore} (${numericTotal} + ${vCount} v's)`);
   };
 
   const addAllShots = () => {
@@ -73,6 +102,7 @@ export default function AddEntryScreen() {
 
   const clearAllShots = () => {
     setShotScores(Array(12).fill(''));
+    setScore(''); // Clear total score when clearing individual shots
     console.log('Cleared all shot scores');
   };
 
@@ -151,12 +181,10 @@ export default function AddEntryScreen() {
       return;
     }
 
-    // Convert shot scores to numbers, filtering out empty values
+    // Filter out empty shot scores
     const validShotScores = shotScores
-      .map(score => score.trim())
-      .filter(score => score !== '')
-      .map(score => parseFloat(score))
-      .filter(score => !isNaN(score));
+      .map(score => score.trim().toLowerCase())
+      .filter(score => score !== '');
 
     console.log('Valid shot scores:', validShotScores);
 
@@ -222,10 +250,10 @@ export default function AddEntryScreen() {
                   }]}
                   value={shotScores[index]}
                   onChangeText={(value) => updateShotScore(index, value)}
-                  placeholder="0"
+                  placeholder="0 or v"
                   placeholderTextColor={colors.grey}
-                  keyboardType="decimal-pad"
                   returnKeyType="next"
+                  autoCapitalize="none"
                 />
               </View>
             );
@@ -242,7 +270,8 @@ export default function AddEntryScreen() {
           textAlign: 'center',
           color: colors.grey
         }]}>
-          Enter scores for up to 12 individual shots (leave blank to skip)
+          Enter scores for up to 12 individual shots. Use "v" for V-ring hits.
+          {'\n'}Total score will be calculated automatically.
         </Text>
         {rows}
         <View style={[commonStyles.row, { marginTop: 15 }]}>
@@ -395,7 +424,7 @@ export default function AddEntryScreen() {
             style={commonStyles.input}
             value={score}
             onChangeText={setScore}
-            placeholder="e.g., 95, 180/200"
+            placeholder="e.g., 95, 180/200, or auto-calculated from shots"
             placeholderTextColor={colors.grey}
             returnKeyType="next"
           />
@@ -412,7 +441,7 @@ export default function AddEntryScreen() {
                   textAlign: 'left',
                   marginBottom: 0
                 }]}>
-                  Track up to 12 individual shot scores
+                  Track up to 12 individual shot scores. Use "v" for V-ring hits.
                 </Text>
               </View>
               <Button

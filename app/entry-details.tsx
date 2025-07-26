@@ -16,7 +16,7 @@ interface RangeEntry {
   windageMOA: string;
   notes: string;
   score?: string;
-  shotScores?: number[]; // Optional
+  shotScores?: string[]; // Changed to string array to handle "v" entries
   bullGrainWeight?: string;
   targetImageUri?: string;
   timestamp: number;
@@ -71,6 +71,36 @@ export default function EntryDetailsScreen() {
     router.back();
   };
 
+  const calculateShotStatistics = (scores: string[]) => {
+    let numericTotal = 0;
+    let vCount = 0;
+    let numericScores: number[] = [];
+
+    scores.forEach(score => {
+      const cleanScore = score.trim().toLowerCase();
+      if (cleanScore === 'v') {
+        vCount++;
+      } else {
+        const numValue = parseFloat(cleanScore);
+        if (!isNaN(numValue)) {
+          numericTotal += numValue;
+          numericScores.push(numValue);
+        }
+      }
+    });
+
+    const totalScore = numericTotal + (vCount * 0.1);
+    const average = numericScores.length > 0 ? numericTotal / numericScores.length : 0;
+
+    return {
+      totalScore,
+      numericTotal,
+      vCount,
+      average,
+      totalShots: scores.length
+    };
+  };
+
   const renderShotScores = () => {
     if (!entry?.shotScores || entry.shotScores.length === 0) {
       return (
@@ -95,6 +125,7 @@ export default function EntryDetailsScreen() {
 
     const rows = [];
     const scores = entry.shotScores;
+    const stats = calculateShotStatistics(scores);
     
     for (let i = 0; i < scores.length; i += 4) {
       const rowScores = scores.slice(i, i + 4);
@@ -102,22 +133,27 @@ export default function EntryDetailsScreen() {
         <View key={i} style={commonStyles.row}>
           {rowScores.map((score, index) => (
             <View key={i + index} style={{
-              backgroundColor: colors.secondary,
+              backgroundColor: score.toLowerCase() === 'v' ? colors.accent : colors.secondary,
               borderRadius: 6,
               padding: 8,
               minWidth: 60,
               alignItems: 'center',
               marginHorizontal: 2
             }}>
-              <Text style={[commonStyles.text, { fontSize: 12, marginBottom: 2 }]}>
+              <Text style={[commonStyles.text, { 
+                fontSize: 12, 
+                marginBottom: 2,
+                color: score.toLowerCase() === 'v' ? colors.background : colors.text
+              }]}>
                 Shot {i + index + 1}
               </Text>
               <Text style={[commonStyles.text, { 
                 fontSize: 16, 
                 fontWeight: 'bold',
-                marginBottom: 0
+                marginBottom: 0,
+                color: score.toLowerCase() === 'v' ? colors.background : colors.text
               }]}>
-                {score}
+                {score.toUpperCase()}
               </Text>
             </View>
           ))}
@@ -136,20 +172,96 @@ export default function EntryDetailsScreen() {
           Individual Shot Scores ({scores.length} shots)
         </Text>
         {rows}
-        <View style={{
-          backgroundColor: colors.accent,
-          borderRadius: 6,
-          padding: 8,
-          marginTop: 10,
-          alignItems: 'center'
-        }}>
-          <Text style={[commonStyles.text, { 
-            color: colors.background, 
-            fontWeight: 'bold',
-            marginBottom: 0
-          }]}>
-            Average: {(scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1)}
-          </Text>
+        
+        {/* Statistics */}
+        <View style={{ marginTop: 15 }}>
+          <View style={{
+            backgroundColor: colors.accent,
+            borderRadius: 6,
+            padding: 10,
+            marginBottom: 8,
+            alignItems: 'center'
+          }}>
+            <Text style={[commonStyles.text, { 
+              color: colors.background, 
+              fontWeight: 'bold',
+              fontSize: 16,
+              marginBottom: 0
+            }]}>
+              Calculated Total: {stats.totalScore.toFixed(1)}
+            </Text>
+          </View>
+          
+          <View style={commonStyles.row}>
+            <View style={{
+              backgroundColor: colors.secondary,
+              borderRadius: 6,
+              padding: 8,
+              flex: 1,
+              marginRight: 4,
+              alignItems: 'center'
+            }}>
+              <Text style={[commonStyles.text, { 
+                fontSize: 12,
+                marginBottom: 2,
+                color: colors.grey
+              }]}>
+                Numeric Total
+              </Text>
+              <Text style={[commonStyles.text, { 
+                fontWeight: 'bold',
+                marginBottom: 0
+              }]}>
+                {stats.numericTotal}
+              </Text>
+            </View>
+            
+            <View style={{
+              backgroundColor: colors.secondary,
+              borderRadius: 6,
+              padding: 8,
+              flex: 1,
+              marginHorizontal: 2,
+              alignItems: 'center'
+            }}>
+              <Text style={[commonStyles.text, { 
+                fontSize: 12,
+                marginBottom: 2,
+                color: colors.grey
+              }]}>
+                V-Ring Hits
+              </Text>
+              <Text style={[commonStyles.text, { 
+                fontWeight: 'bold',
+                marginBottom: 0
+              }]}>
+                {stats.vCount}
+              </Text>
+            </View>
+            
+            <View style={{
+              backgroundColor: colors.secondary,
+              borderRadius: 6,
+              padding: 8,
+              flex: 1,
+              marginLeft: 4,
+              alignItems: 'center'
+            }}>
+              <Text style={[commonStyles.text, { 
+                fontSize: 12,
+                marginBottom: 2,
+                color: colors.grey
+              }]}>
+                Numeric Avg
+              </Text>
+              <Text style={[commonStyles.text, { 
+                fontWeight: 'bold',
+                marginBottom: 0
+              }]}>
+                {stats.average.toFixed(1)}
+              </Text>
+            </View>
+          </View>
         </View>
       </View>
     );

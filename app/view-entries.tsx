@@ -16,7 +16,7 @@ interface RangeEntry {
   windageMOA: string;
   notes: string;
   score?: string;
-  shotScores?: number[]; // Optional
+  shotScores?: string[]; // Changed to string array to handle "v" entries
   bullGrainWeight?: string;
   targetImageUri?: string;
   timestamp: number;
@@ -125,163 +125,181 @@ export default function ViewEntriesScreen() {
     router.back();
   };
 
-  const EntryCard = ({ entry }: { entry: RangeEntry }) => (
-    <TouchableOpacity 
-      style={commonStyles.card}
-      onPress={() => viewEntryDetails(entry)}
-      activeOpacity={0.7}
-    >
-      <View style={commonStyles.row}>
-        <Text style={[commonStyles.subtitle, { flex: 1 }]}>{entry.rifleName}</Text>
-        <TouchableOpacity
-          onPress={(e) => {
-            e.stopPropagation();
-            deleteEntry(entry.id);
-          }}
-          style={{
-            backgroundColor: colors.error,
-            borderRadius: 6,
-            paddingHorizontal: 12,
-            paddingVertical: 6,
-          }}
-        >
-          <Text style={[commonStyles.text, { fontSize: 12, marginBottom: 0 }]}>
-            Delete
+  const formatShotScores = (shotScores: string[]) => {
+    return shotScores.map(score => score.toUpperCase()).join(', ');
+  };
+
+  const calculateShotStatistics = (scores: string[]) => {
+    let vCount = 0;
+    scores.forEach(score => {
+      if (score.toLowerCase().trim() === 'v') {
+        vCount++;
+      }
+    });
+    return { vCount, totalShots: scores.length };
+  };
+
+  const EntryCard = ({ entry }: { entry: RangeEntry }) => {
+    const shotStats = entry.shotScores ? calculateShotStatistics(entry.shotScores) : null;
+    
+    return (
+      <TouchableOpacity 
+        style={commonStyles.card}
+        onPress={() => viewEntryDetails(entry)}
+        activeOpacity={0.7}
+      >
+        <View style={commonStyles.row}>
+          <Text style={[commonStyles.subtitle, { flex: 1 }]}>{entry.rifleName}</Text>
+          <TouchableOpacity
+            onPress={(e) => {
+              e.stopPropagation();
+              deleteEntry(entry.id);
+            }}
+            style={{
+              backgroundColor: colors.error,
+              borderRadius: 6,
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+            }}
+          >
+            <Text style={[commonStyles.text, { fontSize: 12, marginBottom: 0 }]}>
+              Delete
+            </Text>
+          </TouchableOpacity>
+        </View>
+        
+        <Text style={commonStyles.text}>Date: {entry.date}</Text>
+        {entry.rifleCalibber && (
+          <Text style={commonStyles.text}>Caliber: {entry.rifleCalibber}</Text>
+        )}
+        <Text style={commonStyles.text}>Distance: {entry.distance}</Text>
+        
+        <View style={commonStyles.row}>
+          <Text style={[commonStyles.text, { flex: 1 }]}>
+            Elevation: {entry.elevationMOA} MOA
           </Text>
-        </TouchableOpacity>
-      </View>
-      
-      <Text style={commonStyles.text}>Date: {entry.date}</Text>
-      {entry.rifleCalibber && (
-        <Text style={commonStyles.text}>Caliber: {entry.rifleCalibber}</Text>
-      )}
-      <Text style={commonStyles.text}>Distance: {entry.distance}</Text>
-      
-      <View style={commonStyles.row}>
-        <Text style={[commonStyles.text, { flex: 1 }]}>
-          Elevation: {entry.elevationMOA} MOA
-        </Text>
-        <Text style={[commonStyles.text, { flex: 1, textAlign: 'right' }]}>
-          Windage: {entry.windageMOA} MOA
-        </Text>
-      </View>
-
-      {entry.bullGrainWeight && (
-        <Text style={commonStyles.text}>Bull Grain Weight: {entry.bullGrainWeight}</Text>
-      )}
-
-      {entry.score && (
-        <View style={{
-          backgroundColor: colors.accent,
-          borderRadius: 6,
-          padding: 8,
-          marginVertical: 8,
-          alignItems: 'center'
-        }}>
-          <Text style={[commonStyles.text, { 
-            color: colors.background, 
-            fontWeight: 'bold',
-            marginBottom: 0
-          }]}>
-            Score: {entry.score}
+          <Text style={[commonStyles.text, { flex: 1, textAlign: 'right' }]}>
+            Windage: {entry.windageMOA} MOA
           </Text>
         </View>
-      )}
 
-      {entry.shotScores && entry.shotScores.length > 0 ? (
+        {entry.bullGrainWeight && (
+          <Text style={commonStyles.text}>Bull Grain Weight: {entry.bullGrainWeight}</Text>
+        )}
+
+        {entry.score && (
+          <View style={{
+            backgroundColor: colors.accent,
+            borderRadius: 6,
+            padding: 8,
+            marginVertical: 8,
+            alignItems: 'center'
+          }}>
+            <Text style={[commonStyles.text, { 
+              color: colors.background, 
+              fontWeight: 'bold',
+              marginBottom: 0
+            }]}>
+              Score: {entry.score}
+            </Text>
+          </View>
+        )}
+
+        {entry.shotScores && entry.shotScores.length > 0 ? (
+          <View style={{
+            backgroundColor: colors.secondary,
+            borderRadius: 6,
+            padding: 8,
+            marginVertical: 4
+          }}>
+            <Text style={[commonStyles.text, { 
+              fontSize: 14, 
+              marginBottom: 4,
+              textAlign: 'center'
+            }]}>
+              Shot Scores ({entry.shotScores.length} shots{shotStats && shotStats.vCount > 0 ? `, ${shotStats.vCount} V-ring` : ''})
+            </Text>
+            <Text style={[commonStyles.text, { 
+              fontSize: 12, 
+              marginBottom: 0,
+              textAlign: 'center'
+            }]}>
+              {formatShotScores(entry.shotScores)}
+            </Text>
+          </View>
+        ) : (
+          <View style={{
+            backgroundColor: colors.inputBackground,
+            borderRadius: 6,
+            padding: 8,
+            marginVertical: 4,
+            alignItems: 'center'
+          }}>
+            <Text style={[commonStyles.text, { 
+              fontSize: 12, 
+              fontStyle: 'italic',
+              color: colors.grey,
+              marginBottom: 0
+            }]}>
+              No individual shot scores recorded
+            </Text>
+          </View>
+        )}
+
+        {entry.targetImageUri && (
+          <View style={{ marginVertical: 10 }}>
+            <Text style={[commonStyles.text, { marginBottom: 8, textAlign: 'left' }]}>
+              Target Photo:
+            </Text>
+            <TouchableOpacity 
+              onPress={(e) => {
+                e.stopPropagation();
+                openImageModal(entry.targetImageUri!);
+              }}
+            >
+              <Image 
+                source={{ uri: entry.targetImageUri }} 
+                style={{ 
+                  width: '100%', 
+                  height: 150, 
+                  borderRadius: 8,
+                  borderWidth: 2,
+                  borderColor: colors.border
+                }} 
+                resizeMode="cover"
+              />
+              <View style={{
+                position: 'absolute',
+                bottom: 8,
+                right: 8,
+                backgroundColor: 'rgba(0,0,0,0.7)',
+                borderRadius: 4,
+                padding: 4
+              }}>
+                <Icon name="expand" size={16} />
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
+        
         <View style={{
-          backgroundColor: colors.secondary,
+          backgroundColor: colors.primary,
           borderRadius: 6,
           padding: 8,
-          marginVertical: 4
+          marginTop: 10,
+          alignItems: 'center'
         }}>
           <Text style={[commonStyles.text, { 
             fontSize: 14, 
-            marginBottom: 4,
-            textAlign: 'center'
-          }]}>
-            Shot Scores ({entry.shotScores.length} shots)
-          </Text>
-          <Text style={[commonStyles.text, { 
-            fontSize: 12, 
             marginBottom: 0,
-            textAlign: 'center'
+            color: colors.text
           }]}>
-            {entry.shotScores.join(', ')}
+            Tap to view full details
           </Text>
         </View>
-      ) : (
-        <View style={{
-          backgroundColor: colors.inputBackground,
-          borderRadius: 6,
-          padding: 8,
-          marginVertical: 4,
-          alignItems: 'center'
-        }}>
-          <Text style={[commonStyles.text, { 
-            fontSize: 12, 
-            fontStyle: 'italic',
-            color: colors.grey,
-            marginBottom: 0
-          }]}>
-            No individual shot scores recorded
-          </Text>
-        </View>
-      )}
-
-      {entry.targetImageUri && (
-        <View style={{ marginVertical: 10 }}>
-          <Text style={[commonStyles.text, { marginBottom: 8, textAlign: 'left' }]}>
-            Target Photo:
-          </Text>
-          <TouchableOpacity 
-            onPress={(e) => {
-              e.stopPropagation();
-              openImageModal(entry.targetImageUri!);
-            }}
-          >
-            <Image 
-              source={{ uri: entry.targetImageUri }} 
-              style={{ 
-                width: '100%', 
-                height: 150, 
-                borderRadius: 8,
-                borderWidth: 2,
-                borderColor: colors.border
-              }} 
-              resizeMode="cover"
-            />
-            <View style={{
-              position: 'absolute',
-              bottom: 8,
-              right: 8,
-              backgroundColor: 'rgba(0,0,0,0.7)',
-              borderRadius: 4,
-              padding: 4
-            }}>
-              <Icon name="expand" size={16} />
-            </View>
-          </TouchableOpacity>
-        </View>
-      )}
-      
-      <View style={{
-        backgroundColor: colors.primary,
-        borderRadius: 6,
-        padding: 8,
-        marginTop: 10,
-        alignItems: 'center'
-      }}>
-        <Text style={[commonStyles.text, { 
-          fontSize: 14, 
-          marginBottom: 0,
-          color: colors.text
-        }]}>
-          Tap to view full details
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   if (loading) {
     return (
