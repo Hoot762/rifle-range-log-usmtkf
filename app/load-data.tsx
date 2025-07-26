@@ -1,13 +1,14 @@
-import { Text, View, SafeAreaView, ScrollView, Alert, TextInput } from 'react-native';
-import { router } from 'expo-router';
 import { useState } from 'react';
-import Button from '../components/Button';
 import Icon from '../components/Icon';
+import { Text, View, SafeAreaView, ScrollView, Alert, TextInput } from 'react-native';
 import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from 'expo-router';
+import Button from '../components/Button';
 
 interface RangeEntry {
   id: string;
+  entryName: string; // Added entry name field
   date: string;
   rifleName: string;
   rifleCalibber: string;
@@ -16,7 +17,7 @@ interface RangeEntry {
   windageMOA: string;
   notes: string;
   score?: string;
-  shotScores?: number[]; // Optional
+  shotScores?: number[];
   bullGrainWeight?: string;
   targetImageUri?: string;
   timestamp: number;
@@ -33,6 +34,7 @@ export default function LoadDataScreen() {
     const sampleEntries: RangeEntry[] = [
       {
         id: '1',
+        entryName: 'Morning Practice Session',
         date: '2024-01-15',
         rifleName: 'Remington 700',
         rifleCalibber: '.308 Winchester',
@@ -40,46 +42,30 @@ export default function LoadDataScreen() {
         elevationMOA: '2.5',
         windageMOA: '0.75',
         notes: 'Good conditions, light wind from the east',
-        score: '95/100',
-        shotScores: [9, 10, 8, 9, 10, 9, 8, 10, 9, 8],
+        score: '95',
         bullGrainWeight: '168 gr',
-        timestamp: Date.now() - 86400000,
+        timestamp: Date.now() - 86400000, // 1 day ago
       },
       {
         id: '2',
-        date: '2024-01-20',
+        entryName: 'Competition Round 1',
+        date: '2024-01-14',
         rifleName: 'AR-15 Custom',
         rifleCalibber: '5.56 NATO',
         distance: '200 yards',
-        elevationMOA: '4.0',
-        windageMOA: '1.25',
-        notes: 'Windy conditions, had to adjust for crosswind',
-        score: '87/100',
+        elevationMOA: '3.25',
+        windageMOA: '1.0',
+        notes: 'Competition day, moderate wind conditions',
+        score: '88',
         bullGrainWeight: '77 gr',
-        timestamp: Date.now() - 43200000,
-      },
-      {
-        id: '3',
-        date: '2024-01-25',
-        rifleName: 'Savage 110',
-        rifleCalibber: '.30-06 Springfield',
-        distance: '300 yards',
-        elevationMOA: '6.25',
-        windageMOA: '0.5',
-        notes: 'Perfect weather, excellent visibility',
-        score: '92/100',
-        shotScores: [8, 9, 10, 9, 8, 10, 9, 9],
-        bullGrainWeight: '180 gr',
-        timestamp: Date.now() - 21600000,
+        timestamp: Date.now() - 172800000, // 2 days ago
       }
     ];
 
     try {
       await AsyncStorage.setItem('rangeEntries', JSON.stringify(sampleEntries));
-      console.log('Sample data loaded successfully');
-      Alert.alert('Success', 'Sample data loaded successfully!', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
+      Alert.alert('Success', 'Sample data loaded successfully!');
+      console.log('Sample data loaded');
     } catch (error) {
       console.error('Error loading sample data:', error);
       Alert.alert('Error', 'Failed to load sample data');
@@ -97,30 +83,22 @@ export default function LoadDataScreen() {
     try {
       const parsedData = JSON.parse(jsonInput);
       
+      // Validate that it's an array
       if (!Array.isArray(parsedData)) {
         Alert.alert('Error', 'JSON data must be an array of entries');
         return;
       }
 
-      // Validate the structure of each entry
-      const validEntries = parsedData.filter(entry => {
-        return entry.id && entry.date && entry.rifleName && 
-               entry.distance && entry.elevationMOA && entry.windageMOA;
-      });
+      // Add entryName field to entries that don't have it (for backward compatibility)
+      const updatedData = parsedData.map((entry: any) => ({
+        ...entry,
+        entryName: entry.entryName || `Entry ${entry.rifleName || 'Unknown'}`,
+      }));
 
-      if (validEntries.length === 0) {
-        Alert.alert('Error', 'No valid entries found in JSON data');
-        return;
-      }
-
-      await AsyncStorage.setItem('rangeEntries', JSON.stringify(validEntries));
-      console.log(`Loaded ${validEntries.length} entries from JSON`);
-      
-      Alert.alert(
-        'Success', 
-        `Loaded ${validEntries.length} entries from JSON data!`,
-        [{ text: 'OK', onPress: () => router.back() }]
-      );
+      await AsyncStorage.setItem('rangeEntries', JSON.stringify(updatedData));
+      Alert.alert('Success', `Loaded ${updatedData.length} entries successfully!`);
+      setJsonInput('');
+      console.log(`Loaded ${updatedData.length} entries from JSON`);
     } catch (error) {
       console.error('Error parsing JSON:', error);
       Alert.alert('Error', 'Invalid JSON format. Please check your data.');
@@ -128,9 +106,11 @@ export default function LoadDataScreen() {
   };
 
   const clearAllData = async () => {
+    console.log('Clearing all data...');
+    
     Alert.alert(
       'Clear All Data',
-      'Are you sure you want to delete all range entries? This cannot be undone.',
+      'Are you sure you want to delete all range entries? This action cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -139,8 +119,8 @@ export default function LoadDataScreen() {
           onPress: async () => {
             try {
               await AsyncStorage.removeItem('rangeEntries');
+              Alert.alert('Success', 'All data cleared successfully!');
               console.log('All data cleared');
-              Alert.alert('Success', 'All data has been cleared');
             } catch (error) {
               console.error('Error clearing data:', error);
               Alert.alert('Error', 'Failed to clear data');
@@ -167,21 +147,22 @@ export default function LoadDataScreen() {
         <View style={commonStyles.card}>
           <Text style={commonStyles.subtitle}>Sample Data</Text>
           <Text style={commonStyles.text}>
-            Load sample range entries to test the app functionality.
+            Load some sample range entries to get started with the app.
           </Text>
           <Button
             text="Load Sample Data"
             onPress={loadSampleData}
-            style={buttonStyles.primary}
+            style={buttonStyles.accent}
           />
         </View>
 
         <View style={commonStyles.card}>
           <Text style={commonStyles.subtitle}>Load from JSON</Text>
           <Text style={commonStyles.text}>
-            Paste JSON data containing your range entries below:
+            Paste JSON data from a previous export to restore your entries.
           </Text>
           
+          <Text style={commonStyles.label}>JSON Data:</Text>
           <TextInput
             style={[commonStyles.input, { 
               height: 120, 
@@ -191,27 +172,28 @@ export default function LoadDataScreen() {
             }]}
             value={jsonInput}
             onChangeText={setJsonInput}
-            placeholder='[{"id":"1","date":"2024-01-15","rifleName":"My Rifle",...}]'
+            placeholder="Paste your JSON data here..."
             placeholderTextColor={colors.grey}
             multiline
+            returnKeyType="done"
           />
           
           <Button
             text="Load from JSON"
             onPress={loadFromJson}
-            style={buttonStyles.accent}
+            style={buttonStyles.primary}
           />
         </View>
 
         <View style={commonStyles.card}>
-          <Text style={commonStyles.subtitle}>Clear Data</Text>
-          <Text style={commonStyles.text}>
-            Remove all stored range entries from the app.
+          <Text style={commonStyles.subtitle}>Clear All Data</Text>
+          <Text style={[commonStyles.text, { color: colors.error }]}>
+            Warning: This will permanently delete all your range entries.
           </Text>
           <Button
             text="Clear All Data"
             onPress={clearAllData}
-            style={buttonStyles.error}
+            style={[buttonStyles.backButton, { backgroundColor: colors.error }]}
           />
         </View>
 

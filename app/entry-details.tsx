@@ -8,6 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface RangeEntry {
   id: string;
+  entryName: string; // Added entry name field
   date: string;
   rifleName: string;
   rifleCalibber: string;
@@ -301,13 +302,16 @@ export default function EntryDetailsScreen() {
       <ScrollView contentContainerStyle={commonStyles.scrollContent}>
         <View style={{ alignItems: 'center', marginBottom: 20 }}>
           <Icon name="document-text" size={60} style={{ marginBottom: 10 }} />
-          <Text style={commonStyles.title}>Entry Details</Text>
+          <Text style={commonStyles.title}>{entry.entryName || 'Entry Details'}</Text>
+          <Text style={[commonStyles.text, { fontSize: 14, color: colors.grey }]}>
+            {entry.rifleName}
+          </Text>
         </View>
 
         {/* Basic Information */}
         <View style={commonStyles.card}>
           <Text style={[commonStyles.subtitle, { textAlign: 'center', marginBottom: 15 }]}>
-            {entry.rifleName}
+            Basic Information
           </Text>
           
           <View style={commonStyles.row}>

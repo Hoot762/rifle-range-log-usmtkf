@@ -11,6 +11,7 @@ import * as ImagePicker from 'expo-image-picker';
 
 interface RangeEntry {
   id: string;
+  entryName: string; // Added entry name field
   date: string;
   rifleName: string;
   rifleCalibber: string;
@@ -28,6 +29,7 @@ interface RangeEntry {
 export default function AddEntryScreen() {
   console.log('AddEntryScreen rendered');
 
+  const [entryName, setEntryName] = useState(''); // Added entry name state
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [rifleName, setRifleName] = useState('');
@@ -178,8 +180,13 @@ export default function AddEntryScreen() {
   const saveEntry = async () => {
     console.log('Saving entry...');
     
+    if (!entryName.trim()) {
+      Alert.alert('Error', 'Entry name is required');
+      return;
+    }
+    
     if (!rifleName.trim() || !distance.trim() || !elevationMOA.trim() || !windageMOA.trim()) {
-      Alert.alert('Error', 'Please fill in all required fields (Rifle Name, Distance, Elevation MOA, Windage MOA)');
+      Alert.alert('Error', 'Please fill in all required fields (Entry Name, Rifle Name, Distance, Elevation MOA, Windage MOA)');
       return;
     }
 
@@ -192,6 +199,7 @@ export default function AddEntryScreen() {
 
     const entry: RangeEntry = {
       id: Date.now().toString(),
+      entryName: entryName.trim(), // Added entry name to the saved entry
       date: date.toISOString().split('T')[0],
       rifleName: rifleName.trim(),
       rifleCalibber: rifleCalibber.trim(),
@@ -322,6 +330,16 @@ export default function AddEntryScreen() {
         </View>
 
         <View style={commonStyles.card}>
+          <Text style={commonStyles.label}>Entry Name *</Text>
+          <TextInput
+            style={commonStyles.input}
+            value={entryName}
+            onChangeText={setEntryName}
+            placeholder="e.g., Morning Practice Session, Competition Round 1"
+            placeholderTextColor={colors.grey}
+            returnKeyType="next"
+          />
+
           <Text style={commonStyles.label}>Date *</Text>
           <TouchableOpacity
             style={[commonStyles.input, {

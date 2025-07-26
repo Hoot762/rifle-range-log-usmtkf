@@ -8,6 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface RangeEntry {
   id: string;
+  entryName: string; // Added entry name field
   date: string;
   rifleName: string;
   rifleCalibber: string;
@@ -151,7 +152,14 @@ export default function ViewEntriesScreen() {
         activeOpacity={0.7}
       >
         <View style={commonStyles.row}>
-          <Text style={[commonStyles.subtitle, { flex: 1 }]}>{entry.rifleName}</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={[commonStyles.subtitle, { marginBottom: 4 }]}>
+              {entry.entryName || 'Unnamed Entry'}
+            </Text>
+            <Text style={[commonStyles.text, { fontSize: 14, color: colors.grey }]}>
+              {entry.rifleName}
+            </Text>
+          </View>
           <TouchableOpacity
             onPress={(e) => {
               e.stopPropagation();
