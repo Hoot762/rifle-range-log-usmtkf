@@ -79,6 +79,7 @@ export default function EntryDetailsScreen() {
     scores.forEach(score => {
       const cleanScore = score.trim().toLowerCase();
       if (cleanScore === 'v') {
+        numericTotal += 5; // Each "v" counts as 5 points
         vCount++;
       } else {
         const numValue = parseFloat(cleanScore);
@@ -89,15 +90,18 @@ export default function EntryDetailsScreen() {
       }
     });
 
-    const totalScore = numericTotal + (vCount * 0.1);
-    const average = numericScores.length > 0 ? numericTotal / numericScores.length : 0;
+    // Calculate total: numeric total + decimal representing v count
+    const decimalPart = vCount / 10; // 0.1 for 1 v, 0.2 for 2 v's, etc.
+    const totalScore = numericTotal + decimalPart;
+    const average = numericScores.length > 0 ? numericScores.reduce((a, b) => a + b, 0) / numericScores.length : 0;
 
     return {
       totalScore,
       numericTotal,
       vCount,
       average,
-      totalShots: scores.length
+      totalShots: scores.length,
+      vPoints: vCount * 5 // Total points from v's
     };
   };
 
@@ -212,7 +216,7 @@ export default function EntryDetailsScreen() {
                 fontWeight: 'bold',
                 marginBottom: 0
               }]}>
-                {stats.numericTotal}
+                {stats.numericTotal - stats.vPoints}
               </Text>
             </View>
             
@@ -235,7 +239,7 @@ export default function EntryDetailsScreen() {
                 fontWeight: 'bold',
                 marginBottom: 0
               }]}>
-                {stats.vCount}
+                {stats.vCount} ({stats.vPoints}pts)
               </Text>
             </View>
             

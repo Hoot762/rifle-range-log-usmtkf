@@ -131,12 +131,14 @@ export default function ViewEntriesScreen() {
 
   const calculateShotStatistics = (scores: string[]) => {
     let vCount = 0;
+    let vPoints = 0;
     scores.forEach(score => {
       if (score.toLowerCase().trim() === 'v') {
         vCount++;
+        vPoints += 5; // Each "v" is worth 5 points
       }
     });
-    return { vCount, totalShots: scores.length };
+    return { vCount, totalShots: scores.length, vPoints };
   };
 
   const EntryCard = ({ entry }: { entry: RangeEntry }) => {
@@ -217,7 +219,7 @@ export default function ViewEntriesScreen() {
               marginBottom: 4,
               textAlign: 'center'
             }]}>
-              Shot Scores ({entry.shotScores.length} shots{shotStats && shotStats.vCount > 0 ? `, ${shotStats.vCount} V-ring` : ''})
+              Shot Scores ({entry.shotScores.length} shots{shotStats && shotStats.vCount > 0 ? `, ${shotStats.vCount} V-ring (${shotStats.vPoints}pts)` : ''})
             </Text>
             <Text style={[commonStyles.text, { 
               fontSize: 12, 
