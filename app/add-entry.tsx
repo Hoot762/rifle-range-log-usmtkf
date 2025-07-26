@@ -43,16 +43,37 @@ export default function AddEntryScreen() {
   const [showShotScores, setShowShotScores] = useState(false);
 
   const onDateChange = (event: any, selectedDate?: Date) => {
+    console.log('Date picker event:', event.type, selectedDate);
+    
+    if (event.type === 'dismissed') {
+      setShowDatePicker(false);
+      return;
+    }
+    
     const currentDate = selectedDate || date;
-    setShowDatePicker(Platform.OS === 'ios');
+    setShowDatePicker(Platform.OS === 'ios'); // Keep open on iOS, close on Android
     setDate(currentDate);
+    console.log('Date updated to:', currentDate.toDateString());
   };
 
   const updateShotScore = (index: number, value: string) => {
-    const newScores = [...shotScores];
-    newScores[index] = value;
-    setShotScores(newScores);
-    console.log(`Updated shot ${index + 1} to ${value}`);
+    // Allow empty string or valid numbers (including decimals)
+    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+      const newScores = [...shotScores];
+      newScores[index] = value;
+      setShotScores(newScores);
+      console.log(`Updated shot ${index + 1} to "${value}"`);
+    }
+  };
+
+  const addAllShots = () => {
+    setShowShotScores(true);
+    console.log('Showing shot score inputs');
+  };
+
+  const clearAllShots = () => {
+    setShotScores(Array(12).fill(''));
+    console.log('Cleared all shot scores');
   };
 
   const pickImage = async () => {
@@ -126,7 +147,7 @@ export default function AddEntryScreen() {
     console.log('Saving entry...');
     
     if (!rifleName.trim() || !distance.trim() || !elevationMOA.trim() || !windageMOA.trim()) {
-      Alert.alert('Error', 'Please fill in all required fields');
+      Alert.alert('Error', 'Please fill in all required fields (Rifle Name, Distance, Elevation MOA, Windage MOA)');
       return;
     }
 
@@ -136,6 +157,8 @@ export default function AddEntryScreen() {
       .filter(score => score !== '')
       .map(score => parseFloat(score))
       .filter(score => !isNaN(score));
+
+    console.log('Valid shot scores:', validShotScores);
 
     const entry: RangeEntry = {
       id: Date.now().toString(),
@@ -159,7 +182,7 @@ export default function AddEntryScreen() {
       entries.push(entry);
       
       await AsyncStorage.setItem('rangeEntries', JSON.stringify(entries));
-      console.log('Entry saved successfully');
+      console.log('Entry saved successfully:', entry);
       
       Alert.alert('Success', 'Range entry saved successfully!', [
         { text: 'OK', onPress: () => router.back() }
@@ -187,16 +210,22 @@ export default function AddEntryScreen() {
             if (index >= 12) return null;
             return (
               <View key={index} style={{ width: '30%' }}>
-                <Text style={[commonStyles.label, { fontSize: 14 }]}>
+                <Text style={[commonStyles.label, { fontSize: 14, textAlign: 'center' }]}>
                   Shot {index + 1}
                 </Text>
                 <TextInput
-                  style={[commonStyles.input, { marginVertical: 4 }]}
+                  style={[commonStyles.input, { 
+                    marginVertical: 4,
+                    textAlign: 'center',
+                    fontSize: 16,
+                    fontWeight: '600'
+                  }]}
                   value={shotScores[index]}
                   onChangeText={(value) => updateShotScore(index, value)}
                   placeholder="0"
                   placeholderTextColor={colors.grey}
-                  keyboardType="numeric"
+                  keyboardType="decimal-pad"
+                  returnKeyType="next"
                 />
               </View>
             );
@@ -204,7 +233,53 @@ export default function AddEntryScreen() {
         </View>
       );
     }
-    return rows;
+    return (
+      <View style={{ marginTop: 10 }}>
+        <Text style={[commonStyles.text, { 
+          fontSize: 14, 
+          fontStyle: 'italic',
+          marginBottom: 15,
+          textAlign: 'center',
+          color: colors.grey
+        }]}>
+          Enter scores for up to 12 individual shots (leave blank to skip)
+        </Text>
+        {rows}
+        <View style={[commonStyles.row, { marginTop: 15 }]}>
+          <Button
+            text="Clear All"
+            onPress={clearAllShots}
+            style={[buttonStyles.backButton, { 
+              flex: 1,
+              marginRight: 5,
+              paddingVertical: 8,
+              minHeight: 35
+            }]}
+            textStyle={{ fontSize: 14 }}
+          />
+          <Button
+            text="Hide Shots"
+            onPress={() => setShowShotScores(false)}
+            style={[buttonStyles.secondary, { 
+              flex: 1,
+              marginLeft: 5,
+              paddingVertical: 8,
+              minHeight: 35
+            }]}
+            textStyle={{ fontSize: 14 }}
+          />
+        </View>
+      </View>
+    );
+  };
+
+  const formatDateForDisplay = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   return (
@@ -216,12 +291,24 @@ export default function AddEntryScreen() {
         </View>
 
         <View style={commonStyles.card}>
-          <Text style={commonStyles.label}>Date</Text>
-          <Button
-            text={date.toDateString()}
-            onPress={() => setShowDatePicker(true)}
-            style={[buttonStyles.secondary, { marginBottom: 10 }]}
-          />
+          <Text style={commonStyles.label}>Date *</Text>
+          <TouchableOpacity
+            style={[commonStyles.input, {
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingVertical: 15
+            }]}
+            onPress={() => {
+              console.log('Date picker button pressed');
+              setShowDatePicker(true);
+            }}
+          >
+            <Text style={{ color: colors.text, fontSize: 16, fontWeight: '500' }}>
+              {formatDateForDisplay(date)}
+            </Text>
+            <Icon name="calendar" size={20} />
+          </TouchableOpacity>
           
           {showDatePicker && (
             <DateTimePicker
@@ -229,8 +316,9 @@ export default function AddEntryScreen() {
               value={date}
               mode="date"
               is24Hour={true}
-              display="default"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
               onChange={onDateChange}
+              maximumDate={new Date()} // Prevent future dates
             />
           )}
 
@@ -241,6 +329,7 @@ export default function AddEntryScreen() {
             onChangeText={setRifleName}
             placeholder="Enter rifle name"
             placeholderTextColor={colors.grey}
+            returnKeyType="next"
           />
 
           <Text style={commonStyles.label}>Caliber</Text>
@@ -250,6 +339,7 @@ export default function AddEntryScreen() {
             onChangeText={setRifleCalibber}
             placeholder="e.g., .308 Winchester"
             placeholderTextColor={colors.grey}
+            returnKeyType="next"
           />
 
           <Text style={commonStyles.label}>Distance *</Text>
@@ -259,6 +349,7 @@ export default function AddEntryScreen() {
             onChangeText={setDistance}
             placeholder="e.g., 100 yards"
             placeholderTextColor={colors.grey}
+            returnKeyType="next"
           />
 
           <View style={commonStyles.row}>
@@ -270,7 +361,8 @@ export default function AddEntryScreen() {
                 onChangeText={setElevationMOA}
                 placeholder="0.0"
                 placeholderTextColor={colors.grey}
-                keyboardType="numeric"
+                keyboardType="decimal-pad"
+                returnKeyType="next"
               />
             </View>
 
@@ -282,7 +374,8 @@ export default function AddEntryScreen() {
                 onChangeText={setWindageMOA}
                 placeholder="0.0"
                 placeholderTextColor={colors.grey}
-                keyboardType="numeric"
+                keyboardType="decimal-pad"
+                returnKeyType="next"
               />
             </View>
           </View>
@@ -294,6 +387,7 @@ export default function AddEntryScreen() {
             onChangeText={setBullGrainWeight}
             placeholder="e.g., 168 gr"
             placeholderTextColor={colors.grey}
+            returnKeyType="next"
           />
 
           <Text style={commonStyles.label}>Overall Score (Points)</Text>
@@ -303,39 +397,44 @@ export default function AddEntryScreen() {
             onChangeText={setScore}
             placeholder="e.g., 95, 180/200"
             placeholderTextColor={colors.grey}
+            returnKeyType="next"
           />
 
           <View style={{ marginTop: 15 }}>
-            <View style={commonStyles.row}>
-              <Text style={[commonStyles.label, { flex: 1 }]}>
-                Individual Shot Scores (Optional)
-              </Text>
+            <View style={[commonStyles.row, { alignItems: 'flex-end' }]}>
+              <View style={{ flex: 1 }}>
+                <Text style={commonStyles.label}>
+                  Individual Shot Scores (Optional)
+                </Text>
+                <Text style={[commonStyles.text, { 
+                  fontSize: 12, 
+                  color: colors.grey,
+                  textAlign: 'left',
+                  marginBottom: 0
+                }]}>
+                  Track up to 12 individual shot scores
+                </Text>
+              </View>
               <Button
-                text={showShotScores ? "Hide Shots" : "Add Shots"}
-                onPress={() => setShowShotScores(!showShotScores)}
-                style={[buttonStyles.secondary, { 
-                  paddingHorizontal: 15,
-                  paddingVertical: 8,
-                  minHeight: 35
+                text={showShotScores ? "Hide" : "Add Shots"}
+                onPress={() => {
+                  if (!showShotScores) {
+                    addAllShots();
+                  } else {
+                    setShowShotScores(false);
+                  }
+                }}
+                style={[buttonStyles.accent, { 
+                  paddingHorizontal: 20,
+                  paddingVertical: 10,
+                  minHeight: 40,
+                  width: 'auto'
                 }]}
-                textStyle={{ fontSize: 14 }}
+                textStyle={{ fontSize: 14, fontWeight: '600' }}
               />
             </View>
             
-            {showShotScores && (
-              <View style={{ marginTop: 10 }}>
-                <Text style={[commonStyles.text, { 
-                  fontSize: 14, 
-                  fontStyle: 'italic',
-                  marginBottom: 10,
-                  textAlign: 'center',
-                  color: colors.grey
-                }]}>
-                  Enter scores for up to 12 individual shots (leave blank to skip)
-                </Text>
-                {renderShotInputs()}
-              </View>
-            )}
+            {renderShotInputs()}
           </View>
 
           <Text style={[commonStyles.label, { marginTop: 15 }]}>Target Photo</Text>
@@ -394,6 +493,7 @@ export default function AddEntryScreen() {
             placeholder="Additional notes about this session..."
             placeholderTextColor={colors.grey}
             multiline
+            returnKeyType="done"
           />
         </View>
 
