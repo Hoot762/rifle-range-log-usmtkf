@@ -10,6 +10,7 @@ export const colors = {
   text: '#FFFFFF',         // White text
   textSecondary: '#B0B0B0', // Secondary text color
   grey: '#6C757D',         // Grey accent
+  lightGrey: '#D3D3D3',    // Light grey
   card: '#2D5A3D',         // Medium green for cards
   success: '#40916C',      // Success green
   error: '#DC3545',        // Error red
@@ -30,6 +31,11 @@ export const buttonStyles = StyleSheet.create({
   },
   accent: {
     backgroundColor: colors.accent,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  lightGrey: {
+    backgroundColor: colors.lightGrey,
     alignSelf: 'center',
     width: '100%',
   },
