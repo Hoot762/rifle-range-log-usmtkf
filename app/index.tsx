@@ -23,6 +23,11 @@ export default function HomeScreen() {
     router.push('/load-data');
   };
 
+  const navigateToDopeCards = () => {
+    console.log('Navigating to DOPE cards screen');
+    router.push('/dope-cards');
+  };
+
   return (
     <SafeAreaView style={commonStyles.wrapper}>
       <View style={commonStyles.container}>
@@ -47,6 +52,14 @@ export default function HomeScreen() {
                 text="View Entries"
                 onPress={navigateToViewEntries}
                 style={buttonStyles.secondary}
+              />
+            </View>
+            
+            <View style={commonStyles.buttonContainer}>
+              <Button
+                text="DOPE"
+                onPress={navigateToDopeCards}
+                style={buttonStyles.accent}
               />
             </View>
             
