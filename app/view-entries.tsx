@@ -340,8 +340,8 @@ export default function ViewEntriesScreen() {
             <Text style={[commonStyles.subtitle, { marginBottom: 4 }]}>
               {entry.entryName || 'Unnamed Entry'}
             </Text>
-            <Text style={[commonStyles.text, { fontSize: 14, color: colors.grey }]}>
-              {entry.rifleName} {entry.rifleCalibber ? `(${entry.rifleCalibber})` : ''}
+            <Text style={[commonStyles.text, { textAlign: 'left' }]}>
+              Rifle: {entry.rifleName} {entry.rifleCalibber ? `(${entry.rifleCalibber})` : ''}
             </Text>
           </View>
           <TouchableOpacity
@@ -362,11 +362,11 @@ export default function ViewEntriesScreen() {
           </TouchableOpacity>
         </View>
         
-        <Text style={commonStyles.text}>Date: {entry.date}</Text>
-        <Text style={commonStyles.text}>Distance: {entry.distance}</Text>
+        <Text style={[commonStyles.text, { textAlign: 'left' }]}>Date: {entry.date}</Text>
+        <Text style={[commonStyles.text, { textAlign: 'left' }]}>Distance: {entry.distance}</Text>
         
         <View style={commonStyles.row}>
-          <Text style={[commonStyles.text, { flex: 1 }]}>
+          <Text style={[commonStyles.text, { flex: 1, textAlign: 'left' }]}>
             Elevation: {entry.elevationMOA} MOA
           </Text>
           <Text style={[commonStyles.text, { flex: 1, textAlign: 'right' }]}>
@@ -375,7 +375,7 @@ export default function ViewEntriesScreen() {
         </View>
 
         {entry.bullGrainWeight && (
-          <Text style={commonStyles.text}>Bull Grain Weight: {entry.bullGrainWeight}</Text>
+          <Text style={[commonStyles.text, { textAlign: 'left' }]}>Bull Grain Weight: {entry.bullGrainWeight}</Text>
         )}
 
         {entry.score && (
