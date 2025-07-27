@@ -5,6 +5,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Button from '../components/Button';
 import Icon from '../components/Icon';
 import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import * as DocumentPicker from 'expo-document-picker';
 
 interface DOPECard {
   id: string;
@@ -17,6 +20,18 @@ interface DOPECard {
     };
   };
   timestamp: number;
+}
+
+interface ExportData {
+  exportDate: string;
+  totalCards: number;
+  cards: DOPECard[];
+}
+
+interface ImportData {
+  exportDate?: string;
+  totalCards?: number;
+  cards: DOPECard[];
 }
 
 const RANGES = ['600', '700', '800', '900', '1000', '1100', '1200'];
@@ -32,6 +47,10 @@ export default function DopeCardsScreen() {
   const [caliber, setCaliber] = useState('');
   const [ranges, setRanges] = useState<{ [range: string]: { elevation: string; windage: string } }>({});
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [exportModalVisible, setExportModalVisible] = useState(false);
+  const [fileName, setFileName] = useState('dope_cards_export');
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
 
   useEffect(() => {
     console.log('DopeCardsScreen useEffect running');
@@ -199,6 +218,221 @@ export default function DopeCardsScreen() {
 
   const updateRange = (range: string, field: 'elevation' | 'windage', value: string) => {
     handleMOAInputChange(range, field, value);
+  };
+
+  const exportData = async () => {
+    console.log('Opening export options...');
+    setExportModalVisible(true);
+  };
+
+  const performExport = async (exportType: 'share' | 'save') => {
+    console.log(`Performing export with type: ${exportType}`);
+    setIsExporting(true);
+    
+    try {
+      if (dopeCards.length === 0) {
+        Alert.alert('No Data', 'No DOPE cards found to export');
+        return;
+      }
+
+      const exportData: ExportData = {
+        exportDate: new Date().toISOString(),
+        totalCards: dopeCards.length,
+        cards: dopeCards
+      };
+
+      // Validate the export data before stringifying
+      try {
+        const testJson = JSON.stringify(exportData);
+        console.log(`Export JSON size: ${testJson.length} characters`);
+        
+        // Test parsing to ensure it's valid
+        const testParse = JSON.parse(testJson);
+        console.log('JSON validation successful');
+      } catch (jsonError) {
+        console.error('JSON validation failed:', jsonError);
+        Alert.alert('Error', 'Failed to create valid JSON export. Please try again.');
+        return;
+      }
+
+      const jsonString = JSON.stringify(exportData, null, 2);
+      const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9_-]/g, '_');
+      const fullFileName = `${sanitizedFileName}.json`;
+
+      const fileUri = FileSystem.documentDirectory + fullFileName;
+      await FileSystem.writeAsStringAsync(fileUri, jsonString);
+      
+      console.log('File created at:', fileUri);
+      
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri, {
+          mimeType: 'application/json',
+          dialogTitle: exportType === 'share' ? 'Share DOPE Cards Export' : 'Save DOPE Cards Export'
+        });
+        console.log('File shared successfully');
+      } else {
+        Alert.alert('Error', 'Sharing is not available on this device');
+      }
+
+      setExportModalVisible(false);
+      
+      Alert.alert(
+        'Export Complete',
+        `Successfully exported ${dopeCards.length} DOPE cards to ${fullFileName}`,
+        [{ text: 'OK' }]
+      );
+
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      Alert.alert('Error', 'Failed to export data. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const selectAndImportJsonFile = async () => {
+    console.log('Opening file picker for DOPE cards JSON import...');
+    
+    setIsImporting(true);
+
+    try {
+      // Open document picker to select JSON file
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/json',
+        copyToCacheDirectory: true,
+      });
+
+      console.log('Document picker result:', result);
+
+      if (result.canceled) {
+        console.log('File selection cancelled by user');
+        Alert.alert('Import Cancelled', 'No file was selected.');
+        return;
+      }
+
+      if (!result.assets || result.assets.length === 0) {
+        console.log('No file selected');
+        Alert.alert('Error', 'No file was selected.');
+        return;
+      }
+
+      const file = result.assets[0];
+      console.log(`Selected file: ${file.name}, size: ${file.size} bytes`);
+
+      // Read the file content
+      const fileContent = await FileSystem.readAsStringAsync(file.uri);
+      console.log(`File content length: ${fileContent.length} characters`);
+
+      // Parse and process the JSON data
+      await processJsonData(fileContent);
+
+    } catch (error) {
+      console.error('Error selecting or reading file:', error);
+      Alert.alert('Error', 'Failed to read the selected file. Please make sure it&apos;s a valid JSON file.');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const processJsonData = async (jsonContent: string) => {
+    console.log('Processing DOPE cards JSON data...');
+    
+    try {
+      // First, validate that the JSON is parseable
+      let parsedData;
+      try {
+        parsedData = JSON.parse(jsonContent);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        Alert.alert('Error', 'Invalid JSON format. Please check your file and try again.');
+        return;
+      }
+      
+      let cardsToImport: DOPECard[] = [];
+
+      // Handle both old format (direct array) and new format (with metadata)
+      if (Array.isArray(parsedData)) {
+        cardsToImport = parsedData;
+        console.log('Importing data in old format (direct array)');
+      } else if (parsedData.cards && Array.isArray(parsedData.cards)) {
+        cardsToImport = parsedData.cards;
+        console.log(`Importing data in new format, exported on: ${parsedData.exportDate}`);
+        console.log(`Expected cards: ${parsedData.totalCards}, actual cards: ${cardsToImport.length}`);
+      } else {
+        Alert.alert('Error', 'Invalid JSON format. Expected an array of DOPE cards or export data object.');
+        return;
+      }
+
+      if (cardsToImport.length === 0) {
+        Alert.alert('Error', 'No DOPE cards found in the JSON data.');
+        return;
+      }
+
+      console.log(`Processing ${cardsToImport.length} DOPE cards for import...`);
+
+      // Process cards and validate
+      const processedCards: DOPECard[] = [];
+
+      for (let i = 0; i < cardsToImport.length; i++) {
+        const card = cardsToImport[i];
+        console.log(`Processing card ${i + 1}/${cardsToImport.length}: ${card.rifleName || card.id}`);
+
+        // Validate required fields
+        if (!card.id || !card.rifleName || !card.caliber) {
+          console.log(`Skipping invalid card: missing required fields`);
+          continue;
+        }
+
+        const processedCard: DOPECard = {
+          id: card.id,
+          rifleName: card.rifleName,
+          caliber: card.caliber,
+          ranges: card.ranges || {},
+          timestamp: card.timestamp || Date.now()
+        };
+
+        processedCards.push(processedCard);
+      }
+
+      if (processedCards.length === 0) {
+        Alert.alert('Error', 'No valid DOPE cards found in the JSON data.');
+        return;
+      }
+
+      // Get existing cards and merge
+      const existingCards = dopeCards;
+      
+      // Combine existing and new cards, avoiding duplicates by ID
+      const existingIds = new Set(existingCards.map(card => card.id));
+      const newCards = processedCards.filter(card => !existingIds.has(card.id));
+      const duplicateCount = processedCards.length - newCards.length;
+      
+      if (newCards.length === 0) {
+        Alert.alert('Info', 'All DOPE cards in the JSON file already exist. No new cards were imported.');
+        return;
+      }
+
+      const allCards = [...existingCards, ...newCards];
+
+      setDopeCards(allCards);
+      await saveDopeCards(allCards);
+      
+      let message = `Successfully imported ${newCards.length} new DOPE cards`;
+      if (duplicateCount > 0) {
+        message += `. ${duplicateCount} duplicate cards were skipped`;
+      }
+      message += '!';
+      
+      Alert.alert('Success', message);
+      console.log(`Import completed: ${newCards.length} new cards, ${duplicateCount} duplicates skipped`);
+    } catch (error) {
+      console.error('Error processing JSON data:', error);
+      Alert.alert('Error', 'Import failed. Please check your data and try again.');
+    }
+  };
+
+  const closeExportModal = () => {
+    setExportModalVisible(false);
   };
 
   const goBack = () => {
@@ -484,6 +718,26 @@ export default function DopeCardsScreen() {
         />
       </View>
 
+      {dopeCards.length > 0 && (
+        <View style={commonStyles.buttonContainer}>
+          <Button
+            text="Export DOPE Cards"
+            onPress={exportData}
+            style={buttonStyles.accent}
+          />
+        </View>
+      )}
+
+      <View style={commonStyles.buttonContainer}>
+        <Button
+          text={isImporting ? "Importing..." : "Load Data"}
+          onPress={selectAndImportJsonFile}
+          style={[buttonStyles.secondary, {
+            opacity: isImporting ? 0.6 : 1
+          }]}
+        />
+      </View>
+
       <View style={commonStyles.buttonContainer}>
         <Button
           text="Back"
@@ -548,6 +802,162 @@ export default function DopeCardsScreen() {
           </View>
         </View>
       </Modal>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={exportModalVisible}
+        onRequestClose={closeExportModal}
+      >
+        <View style={{
+          flex: 1,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 20
+        }}>
+          <View style={{
+            backgroundColor: colors.background,
+            borderRadius: 12,
+            padding: 20,
+            width: '100%',
+            maxWidth: 400,
+            borderWidth: 2,
+            borderColor: colors.border
+          }}>
+            <View style={{ alignItems: 'center', marginBottom: 20 }}>
+              <Icon name="download" size={40} style={{ marginBottom: 10 }} />
+              <Text style={[commonStyles.title, { fontSize: 20, marginBottom: 10 }]}>
+                Export DOPE Cards
+              </Text>
+              <Text style={[commonStyles.text, { textAlign: 'center', color: colors.grey }]}>
+                Export {dopeCards.length} DOPE cards to a JSON file
+              </Text>
+            </View>
+
+            <View style={{ marginBottom: 20 }}>
+              <Text style={[commonStyles.text, { marginBottom: 8 }]}>
+                File Name:
+              </Text>
+              <TextInput
+                style={[commonStyles.input, { marginBottom: 0 }]}
+                value={fileName}
+                onChangeText={setFileName}
+                placeholder="Enter file name"
+                placeholderTextColor={colors.grey}
+                editable={!isExporting}
+              />
+              <Text style={[commonStyles.text, { 
+                fontSize: 12, 
+                color: colors.grey, 
+                marginTop: 4,
+                marginBottom: 0 
+              }]}>
+                .json extension will be added automatically
+              </Text>
+            </View>
+
+            {isExporting && (
+              <View style={{ 
+                backgroundColor: colors.secondary, 
+                borderRadius: 8, 
+                padding: 15, 
+                marginBottom: 20,
+                alignItems: 'center'
+              }}>
+                <Text style={[commonStyles.text, { 
+                  fontSize: 14, 
+                  color: colors.text,
+                  marginBottom: 0
+                }]}>
+                  Creating export file... Please wait
+                </Text>
+              </View>
+            )}
+
+            <View style={{ marginBottom: 20 }}>
+              <Button
+                text={isExporting ? "Processing..." : "Share File"}
+                onPress={() => performExport('share')}
+                style={[buttonStyles.primary, { 
+                  marginBottom: 10,
+                  opacity: isExporting ? 0.6 : 1
+                }]}
+              />
+              <Text style={[commonStyles.text, { 
+                fontSize: 12, 
+                color: colors.grey, 
+                textAlign: 'center',
+                marginBottom: 15
+              }]}>
+                Opens share dialog to save or send the file
+              </Text>
+
+              <Button
+                text={isExporting ? "Processing..." : "Save to Device"}
+                onPress={() => performExport('save')}
+                style={[buttonStyles.accent, {
+                  opacity: isExporting ? 0.6 : 1
+                }]}
+              />
+              <Text style={[commonStyles.text, { 
+                fontSize: 12, 
+                color: colors.grey, 
+                textAlign: 'center',
+                marginTop: 4,
+                marginBottom: 0
+              }]}>
+                Choose where to save the file on your device
+              </Text>
+            </View>
+
+            <Button
+              text="Cancel"
+              onPress={closeExportModal}
+              style={[buttonStyles.secondary, {
+                opacity: isExporting ? 0.6 : 1
+              }]}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      {isImporting && (
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={isImporting}
+        >
+          <View style={{
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.7)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 20
+          }}>
+            <View style={{
+              backgroundColor: colors.background,
+              borderRadius: 12,
+              padding: 30,
+              alignItems: 'center',
+              borderWidth: 2,
+              borderColor: colors.border
+            }}>
+              <Icon name="download" size={40} style={{ marginBottom: 15 }} />
+              <Text style={[commonStyles.subtitle, { textAlign: 'center', marginBottom: 10 }]}>
+                Importing DOPE Cards
+              </Text>
+              <Text style={[commonStyles.text, { 
+                textAlign: 'center', 
+                color: colors.grey,
+                marginBottom: 0
+              }]}>
+                Please wait while we process your file...
+              </Text>
+            </View>
+          </View>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 }
