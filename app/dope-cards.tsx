@@ -5,7 +5,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Button from '../components/Button';
 import Icon from '../components/Icon';
 import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
-import { StyleSheet } from 'react-native';
 
 interface DOPECard {
   id: string;
@@ -22,237 +21,6 @@ interface DOPECard {
 
 const RANGES = ['600', '700', '800', '900', '1000', '1100', '1200'];
 const STORAGE_KEY = 'dope_cards';
-
-const styles = StyleSheet.create({
-  formContainer: {
-    padding: 20,
-  },
-  formTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.text,
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: colors.surface,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    color: colors.text,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.text,
-    marginBottom: 15,
-    marginTop: 10,
-  },
-  tableHeader: {
-    flexDirection: 'row',
-    backgroundColor: colors.primary,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 5,
-  },
-  headerCell: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.surface,
-    textAlign: 'center',
-  },
-  tableRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  rangeCell: {
-    flex: 1,
-    fontSize: 14,
-    color: colors.text,
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  dataInput: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: 6,
-    padding: 8,
-    fontSize: 14,
-    color: colors.text,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginHorizontal: 5,
-    textAlign: 'center',
-  },
-  formButtons: {
-    flexDirection: 'row',
-    marginTop: 30,
-  },
-  listContainer: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    paddingBottom: 10,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.text,
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
-  cardsList: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  cardItem: {
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  cardInfo: {
-    flex: 1,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.text,
-    marginBottom: 4,
-  },
-  cardSubtitle: {
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-  cardActions: {
-    flexDirection: 'row',
-  },
-  actionButton: {
-    padding: 8,
-    marginLeft: 8,
-    borderRadius: 6,
-    backgroundColor: colors.background,
-  },
-  deleteButton: {
-    backgroundColor: colors.error + '20',
-  },
-  rangeData: {
-    backgroundColor: colors.background,
-    borderRadius: 8,
-    padding: 12,
-  },
-  rangeHeader: {
-    flexDirection: 'row',
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    marginBottom: 8,
-  },
-  rangeHeaderText: {
-    flex: 1,
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
-  rangeRow: {
-    flexDirection: 'row',
-    paddingVertical: 4,
-  },
-  rangeText: {
-    flex: 1,
-    fontSize: 12,
-    color: colors.text,
-    textAlign: 'center',
-  },
-  rangeValue: {
-    flex: 1,
-    fontSize: 12,
-    color: colors.text,
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 24,
-    margin: 20,
-    minWidth: 300,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.text,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  modalText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginBottom: 20,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-  },
-  scrollContentContainer: {
-    flexGrow: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    maxWidth: 800,
-    width: '100%',
-    paddingHorizontal: 20,
-  },
-});
 
 export default function DopeCardsScreen() {
   console.log('DopeCardsScreen component rendered');
@@ -395,26 +163,27 @@ export default function DopeCardsScreen() {
   };
 
   const renderCardForm = () => (
-    <View style={styles.formContainer}>
-      <Text style={styles.formTitle}>
-        {editingCard ? 'Edit DOPE Card' : 'Add New DOPE Card'}
-      </Text>
+    <View style={{ width: '100%' }}>
+      <View style={{ alignItems: 'center', marginBottom: 20 }}>
+        <Icon name="target" size={60} style={{ marginBottom: 10 }} />
+        <Text style={commonStyles.title}>
+          {editingCard ? 'Edit DOPE Card' : 'Add New DOPE Card'}
+        </Text>
+      </View>
 
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>Rifle Name</Text>
+      <View style={commonStyles.card}>
+        <Text style={commonStyles.label}>Rifle Name</Text>
         <TextInput
-          style={styles.input}
+          style={commonStyles.input}
           value={rifleName}
           onChangeText={setRifleName}
           placeholder="Enter rifle name"
           placeholderTextColor={colors.textSecondary}
         />
-      </View>
 
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>Caliber</Text>
+        <Text style={commonStyles.label}>Caliber</Text>
         <TextInput
-          style={styles.input}
+          style={commonStyles.input}
           value={caliber}
           onChangeText={setCaliber}
           placeholder="Enter caliber"
@@ -422,117 +191,262 @@ export default function DopeCardsScreen() {
         />
       </View>
 
-      <Text style={styles.sectionTitle}>Range Data (MOA)</Text>
-      
-      <View style={styles.tableHeader}>
-        <Text style={styles.headerCell}>Range</Text>
-        <Text style={styles.headerCell}>Elevation</Text>
-        <Text style={styles.headerCell}>Windage</Text>
+      <View style={commonStyles.card}>
+        <Text style={[commonStyles.subtitle, { textAlign: 'center', marginBottom: 15 }]}>
+          Range Data (MOA)
+        </Text>
+        
+        <View style={{
+          flexDirection: 'row',
+          backgroundColor: colors.primary,
+          borderRadius: 8,
+          padding: 12,
+          marginBottom: 10,
+        }}>
+          <Text style={[commonStyles.text, { 
+            flex: 1, 
+            fontWeight: 'bold', 
+            color: colors.text,
+            textAlign: 'center',
+            marginBottom: 0
+          }]}>
+            Range
+          </Text>
+          <Text style={[commonStyles.text, { 
+            flex: 1, 
+            fontWeight: 'bold', 
+            color: colors.text,
+            textAlign: 'center',
+            marginBottom: 0
+          }]}>
+            Elevation
+          </Text>
+          <Text style={[commonStyles.text, { 
+            flex: 1, 
+            fontWeight: 'bold', 
+            color: colors.text,
+            textAlign: 'center',
+            marginBottom: 0
+          }]}>
+            Windage
+          </Text>
+        </View>
+
+        {RANGES.map(range => (
+          <View key={range} style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingVertical: 8,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+          }}>
+            <Text style={[commonStyles.text, { 
+              flex: 1, 
+              textAlign: 'center',
+              fontWeight: '500',
+              marginBottom: 0
+            }]}>
+              {range} yards
+            </Text>
+            <TextInput
+              style={[commonStyles.input, {
+                flex: 1,
+                marginHorizontal: 5,
+                marginVertical: 4,
+                textAlign: 'center',
+                padding: 8,
+              }]}
+              value={ranges[range]?.elevation || ''}
+              onChangeText={(value) => updateRange(range, 'elevation', value)}
+              placeholder="0.0"
+              placeholderTextColor={colors.textSecondary}
+              keyboardType="numeric"
+            />
+            <TextInput
+              style={[commonStyles.input, {
+                flex: 1,
+                marginHorizontal: 5,
+                marginVertical: 4,
+                textAlign: 'center',
+                padding: 8,
+              }]}
+              value={ranges[range]?.windage || ''}
+              onChangeText={(value) => updateRange(range, 'windage', value)}
+              placeholder="0.0"
+              placeholderTextColor={colors.textSecondary}
+              keyboardType="numeric"
+            />
+          </View>
+        ))}
       </View>
 
-      {RANGES.map(range => (
-        <View key={range} style={styles.tableRow}>
-          <Text style={styles.rangeCell}>{range} yards</Text>
-          <TextInput
-            style={styles.dataInput}
-            value={ranges[range]?.elevation || ''}
-            onChangeText={(value) => updateRange(range, 'elevation', value)}
-            placeholder="0.0"
-            placeholderTextColor={colors.textSecondary}
-            keyboardType="numeric"
-          />
-          <TextInput
-            style={styles.dataInput}
-            value={ranges[range]?.windage || ''}
-            onChangeText={(value) => updateRange(range, 'windage', value)}
-            placeholder="0.0"
-            placeholderTextColor={colors.textSecondary}
-            keyboardType="numeric"
-          />
-        </View>
-      ))}
-
-      <View style={styles.formButtons}>
+      <View style={commonStyles.buttonContainer}>
         <Button
           text="Cancel"
           onPress={cancelEditing}
-          style={[buttonStyles.secondary, { flex: 1, marginRight: 10 }]}
+          style={[buttonStyles.secondary, { marginBottom: 10 }]}
         />
         <Button
           text={editingCard ? "Update" : "Save"}
           onPress={saveCard}
-          style={[buttonStyles.primary, { flex: 1 }]}
+          style={buttonStyles.primary}
         />
       </View>
     </View>
   );
 
   const renderCardsList = () => (
-    <View style={styles.listContainer}>
-      <View style={styles.header}>
-        <Text style={styles.title}>DOPE Cards</Text>
+    <View style={{ width: '100%' }}>
+      <View style={{ alignItems: 'center', marginBottom: 20 }}>
+        <Icon name="target" size={60} style={{ marginBottom: 10 }} />
+        <Text style={commonStyles.title}>DOPE Cards</Text>
+        <Text style={commonStyles.text}>
+          {dopeCards.length} {dopeCards.length === 1 ? 'card' : 'cards'} found
+        </Text>
+      </View>
+
+      {dopeCards.length === 0 ? (
+        <View style={commonStyles.card}>
+          <Text style={[commonStyles.text, { textAlign: 'center' }]}>
+            No DOPE cards found. Add your first DOPE card to track rifle data!
+          </Text>
+        </View>
+      ) : (
+        dopeCards.map(card => (
+          <View key={card.id} style={commonStyles.card}>
+            <View style={commonStyles.row}>
+              <View style={{ flex: 1 }}>
+                <Text style={[commonStyles.subtitle, { marginBottom: 4 }]}>
+                  {card.rifleName}
+                </Text>
+                <Text style={[commonStyles.text, { textAlign: 'left' }]}>
+                  Caliber: {card.caliber}
+                </Text>
+              </View>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <TouchableOpacity
+                  onPress={() => startEditingCard(card)}
+                  style={{
+                    backgroundColor: colors.accent,
+                    borderRadius: 6,
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                  }}
+                >
+                  <Text style={[commonStyles.text, { fontSize: 12, marginBottom: 0, color: colors.background }]}>
+                    Edit
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => confirmDeleteCard(card.id)}
+                  style={{
+                    backgroundColor: colors.error,
+                    borderRadius: 6,
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                  }}
+                >
+                  <Text style={[commonStyles.text, { fontSize: 12, marginBottom: 0 }]}>
+                    Delete
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={{
+              backgroundColor: colors.secondary,
+              borderRadius: 8,
+              padding: 12,
+              marginTop: 10,
+            }}>
+              <View style={{
+                flexDirection: 'row',
+                paddingBottom: 8,
+                borderBottomWidth: 1,
+                borderBottomColor: colors.border,
+                marginBottom: 8,
+              }}>
+                <Text style={[commonStyles.text, { 
+                  flex: 1, 
+                  fontSize: 14, 
+                  fontWeight: 'bold', 
+                  textAlign: 'center',
+                  marginBottom: 0
+                }]}>
+                  Range
+                </Text>
+                <Text style={[commonStyles.text, { 
+                  flex: 1, 
+                  fontSize: 14, 
+                  fontWeight: 'bold', 
+                  textAlign: 'center',
+                  marginBottom: 0
+                }]}>
+                  Elev
+                </Text>
+                <Text style={[commonStyles.text, { 
+                  flex: 1, 
+                  fontSize: 14, 
+                  fontWeight: 'bold', 
+                  textAlign: 'center',
+                  marginBottom: 0
+                }]}>
+                  Wind
+                </Text>
+              </View>
+              {RANGES.map(range => (
+                <View key={range} style={{
+                  flexDirection: 'row',
+                  paddingVertical: 4,
+                }}>
+                  <Text style={[commonStyles.text, { 
+                    flex: 1, 
+                    fontSize: 12, 
+                    textAlign: 'center',
+                    marginBottom: 0
+                  }]}>
+                    {range}y
+                  </Text>
+                  <Text style={[commonStyles.text, { 
+                    flex: 1, 
+                    fontSize: 12, 
+                    textAlign: 'center',
+                    fontWeight: '500',
+                    marginBottom: 0
+                  }]}>
+                    {card.ranges[range]?.elevation || '-'}
+                  </Text>
+                  <Text style={[commonStyles.text, { 
+                    flex: 1, 
+                    fontSize: 12, 
+                    textAlign: 'center',
+                    fontWeight: '500',
+                    marginBottom: 0
+                  }]}>
+                    {card.ranges[range]?.windage || '-'}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        ))
+      )}
+
+      <View style={commonStyles.buttonContainer}>
         <Button
-          text="Add New"
+          text="Add New DOPE Card"
           onPress={startAddingCard}
           style={buttonStyles.primary}
         />
       </View>
 
-      {dopeCards.length === 0 ? (
-        <View style={styles.emptyState}>
-          <Icon name="target" size={60} style={{ marginBottom: 20 }} />
-          <Text style={styles.emptyText}>No DOPE cards yet</Text>
-          <Text style={styles.emptySubtext}>
-            Add your first DOPE card to track rifle data
-          </Text>
-        </View>
-      ) : (
-        <ScrollView style={styles.cardsList}>
-          {dopeCards.map(card => (
-            <View key={card.id} style={styles.cardItem}>
-              <View style={styles.cardHeader}>
-                <View style={styles.cardInfo}>
-                  <Text style={styles.cardTitle}>{card.rifleName}</Text>
-                  <Text style={styles.cardSubtitle}>{card.caliber}</Text>
-                </View>
-                <View style={styles.cardActions}>
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => startEditingCard(card)}
-                  >
-                    <Icon name="pencil" size={20} />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.deleteButton]}
-                    onPress={() => confirmDeleteCard(card.id)}
-                  >
-                    <Icon name="trash" size={20} />
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              <View style={styles.rangeData}>
-                <View style={styles.rangeHeader}>
-                  <Text style={styles.rangeHeaderText}>Range</Text>
-                  <Text style={styles.rangeHeaderText}>Elev</Text>
-                  <Text style={styles.rangeHeaderText}>Wind</Text>
-                </View>
-                {RANGES.map(range => (
-                  <View key={range} style={styles.rangeRow}>
-                    <Text style={styles.rangeText}>{range}y</Text>
-                    <Text style={styles.rangeValue}>
-                      {card.ranges[range]?.elevation || '-'}
-                    </Text>
-                    <Text style={styles.rangeValue}>
-                      {card.ranges[range]?.windage || '-'}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          ))}
-        </ScrollView>
-      )}
+      <View style={commonStyles.buttonContainer}>
+        <Button
+          text="Back"
+          onPress={goBack}
+          style={buttonStyles.backButton}
+        />
+      </View>
     </View>
   );
 
@@ -550,10 +464,7 @@ export default function DopeCardsScreen() {
           </Text>
         </View>
 
-        <ScrollView 
-          style={{ flex: 1 }}
-          contentContainerStyle={styles.scrollContentContainer}
-        >
+        <ScrollView contentContainerStyle={commonStyles.scrollContent}>
           {isAddingCard ? renderCardForm() : renderCardsList()}
         </ScrollView>
 
@@ -563,22 +474,41 @@ export default function DopeCardsScreen() {
           animationType="fade"
           onRequestClose={() => setShowDeleteConfirm(null)}
         >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Confirm Delete</Text>
-              <Text style={styles.modalText}>
-                Are you sure you want to delete this DOPE card? This action cannot be undone.
-              </Text>
-              <View style={styles.modalButtons}>
+          <View style={{
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 20
+          }}>
+            <View style={{
+              backgroundColor: colors.background,
+              borderRadius: 12,
+              padding: 20,
+              width: '100%',
+              maxWidth: 400,
+              borderWidth: 2,
+              borderColor: colors.border
+            }}>
+              <View style={{ alignItems: 'center', marginBottom: 20 }}>
+                <Icon name="warning" size={40} style={{ marginBottom: 10 }} />
+                <Text style={[commonStyles.subtitle, { textAlign: 'center' }]}>
+                  Confirm Delete
+                </Text>
+                <Text style={[commonStyles.text, { textAlign: 'center', color: colors.textSecondary }]}>
+                  Are you sure you want to delete this DOPE card? This action cannot be undone.
+                </Text>
+              </View>
+              <View style={{ marginBottom: 10 }}>
                 <Button
                   text="Cancel"
                   onPress={() => setShowDeleteConfirm(null)}
-                  style={[buttonStyles.secondary, { flex: 1, marginRight: 10 }]}
+                  style={[buttonStyles.secondary, { marginBottom: 10 }]}
                 />
                 <Button
                   text="Delete"
                   onPress={() => showDeleteConfirm && deleteCard(showDeleteConfirm)}
-                  style={[buttonStyles.danger, { flex: 1 }]}
+                  style={buttonStyles.danger}
                 />
               </View>
             </View>
