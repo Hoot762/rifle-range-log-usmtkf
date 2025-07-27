@@ -291,19 +291,29 @@ export default function DopeCardsScreen() {
   };
 
   const selectAndImportJsonFile = async () => {
-    console.log('Opening file picker for DOPE cards JSON import...');
+    console.log('Starting DOPE cards import process...');
     
+    // Prevent multiple simultaneous imports
+    if (isImporting) {
+      console.log('Import already in progress, ignoring request');
+      return;
+    }
+
     setIsImporting(true);
 
     try {
+      console.log('Opening document picker for JSON file selection...');
+      
       // Open document picker to select JSON file
       const result = await DocumentPicker.getDocumentAsync({
-        type: 'application/json',
+        type: ['application/json', 'text/plain'],
         copyToCacheDirectory: true,
+        multiple: false,
       });
 
-      console.log('Document picker result:', result);
+      console.log('Document picker result:', JSON.stringify(result, null, 2));
 
+      // Handle the new result format from expo-document-picker
       if (result.canceled) {
         console.log('File selection cancelled by user');
         Alert.alert('Import Cancelled', 'No file was selected.');
@@ -311,25 +321,58 @@ export default function DopeCardsScreen() {
       }
 
       if (!result.assets || result.assets.length === 0) {
-        console.log('No file selected');
+        console.log('No file selected or assets array is empty');
         Alert.alert('Error', 'No file was selected.');
         return;
       }
 
       const file = result.assets[0];
-      console.log(`Selected file: ${file.name}, size: ${file.size} bytes`);
+      console.log(`Selected file: ${file.name}, size: ${file.size} bytes, type: ${file.mimeType}`);
+
+      // Validate file type
+      if (file.mimeType && !file.mimeType.includes('json') && !file.mimeType.includes('text')) {
+        console.log('Invalid file type selected:', file.mimeType);
+        Alert.alert('Error', 'Please select a JSON file (.json).');
+        return;
+      }
+
+      // Check file size (limit to 10MB)
+      if (file.size && file.size > 10 * 1024 * 1024) {
+        console.log('File too large:', file.size);
+        Alert.alert('Error', 'File is too large. Please select a file smaller than 10MB.');
+        return;
+      }
 
       // Read the file content
+      console.log('Reading file content from:', file.uri);
       const fileContent = await FileSystem.readAsStringAsync(file.uri);
       console.log(`File content length: ${fileContent.length} characters`);
+
+      if (!fileContent || fileContent.trim().length === 0) {
+        console.log('File is empty');
+        Alert.alert('Error', 'The selected file is empty.');
+        return;
+      }
 
       // Parse and process the JSON data
       await processJsonData(fileContent);
 
     } catch (error) {
-      console.error('Error selecting or reading file:', error);
-      Alert.alert('Error', 'Failed to read the selected file. Please make sure it&apos;s a valid JSON file.');
+      console.error('Error in selectAndImportJsonFile:', error);
+      
+      // Provide more specific error messages
+      if (error.message && error.message.includes('cancelled')) {
+        console.log('File selection was cancelled');
+        Alert.alert('Import Cancelled', 'File selection was cancelled.');
+      } else if (error.message && error.message.includes('permission')) {
+        console.log('Permission error');
+        Alert.alert('Permission Error', 'Unable to access the selected file. Please check app permissions.');
+      } else {
+        console.log('General error during file selection/reading');
+        Alert.alert('Error', 'Failed to read the selected file. Please make sure it&apos;s a valid JSON file and try again.');
+      }
     } finally {
+      console.log('Import process completed, resetting import state');
       setIsImporting(false);
     }
   };
@@ -342,6 +385,7 @@ export default function DopeCardsScreen() {
       let parsedData;
       try {
         parsedData = JSON.parse(jsonContent);
+        console.log('JSON parsed successfully');
       } catch (parseError) {
         console.error('JSON parse error:', parseError);
         Alert.alert('Error', 'Invalid JSON format. Please check your file and try again.');
@@ -359,11 +403,13 @@ export default function DopeCardsScreen() {
         console.log(`Importing data in new format, exported on: ${parsedData.exportDate}`);
         console.log(`Expected cards: ${parsedData.totalCards}, actual cards: ${cardsToImport.length}`);
       } else {
+        console.log('Invalid JSON structure:', Object.keys(parsedData));
         Alert.alert('Error', 'Invalid JSON format. Expected an array of DOPE cards or export data object.');
         return;
       }
 
       if (cardsToImport.length === 0) {
+        console.log('No cards found in JSON data');
         Alert.alert('Error', 'No DOPE cards found in the JSON data.');
         return;
       }
@@ -379,7 +425,7 @@ export default function DopeCardsScreen() {
 
         // Validate required fields
         if (!card.id || !card.rifleName || !card.caliber) {
-          console.log(`Skipping invalid card: missing required fields`);
+          console.log(`Skipping invalid card: missing required fields (id: ${card.id}, rifleName: ${card.rifleName}, caliber: ${card.caliber})`);
           continue;
         }
 
@@ -395,6 +441,7 @@ export default function DopeCardsScreen() {
       }
 
       if (processedCards.length === 0) {
+        console.log('No valid cards after processing');
         Alert.alert('Error', 'No valid DOPE cards found in the JSON data.');
         return;
       }
@@ -408,12 +455,14 @@ export default function DopeCardsScreen() {
       const duplicateCount = processedCards.length - newCards.length;
       
       if (newCards.length === 0) {
+        console.log('All cards are duplicates');
         Alert.alert('Info', 'All DOPE cards in the JSON file already exist. No new cards were imported.');
         return;
       }
 
       const allCards = [...existingCards, ...newCards];
 
+      console.log(`Saving ${allCards.length} total cards (${newCards.length} new, ${existingCards.length} existing)`);
       setDopeCards(allCards);
       await saveDopeCards(allCards);
       
@@ -732,7 +781,12 @@ export default function DopeCardsScreen() {
         <Button
           text={isImporting ? "Importing..." : "Import Data"}
           onPress={selectAndImportJsonFile}
-          style={[buttonStyles.accent, {
+          style={[{
+            backgroundColor: colors.accent,
+            borderRadius: 8,
+            paddingVertical: 12,
+            paddingHorizontal: 20,
+            alignItems: 'center',
             opacity: isImporting ? 0.6 : 1
           }]}
         />
