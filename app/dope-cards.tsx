@@ -454,67 +454,56 @@ export default function DopeCardsScreen() {
 
   return (
     <SafeAreaView style={commonStyles.wrapper}>
-      <View style={commonStyles.container}>
-        <View style={commonStyles.header}>
-          <TouchableOpacity onPress={goBack} style={commonStyles.backButton}>
-            <Icon name="arrow-back" size={24} />
-          </TouchableOpacity>
-          <Text style={commonStyles.headerTitle}>
-            {isAddingCard ? (editingCard ? 'Edit DOPE Card' : 'Add DOPE Card') : 'DOPE Cards'}
-          </Text>
-        </View>
+      <ScrollView contentContainerStyle={commonStyles.scrollContent}>
+        {isAddingCard ? renderCardForm() : renderCardsList()}
+      </ScrollView>
 
-        <ScrollView contentContainerStyle={commonStyles.scrollContent}>
-          {isAddingCard ? renderCardForm() : renderCardsList()}
-        </ScrollView>
-
-        <Modal
-          visible={showDeleteConfirm !== null}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={() => setShowDeleteConfirm(null)}
-        >
+      <Modal
+        visible={showDeleteConfirm !== null}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowDeleteConfirm(null)}
+      >
+        <View style={{
+          flex: 1,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 20
+        }}>
           <View style={{
-            flex: 1,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: 20
+            backgroundColor: colors.background,
+            borderRadius: 12,
+            padding: 20,
+            width: '100%',
+            maxWidth: 400,
+            borderWidth: 2,
+            borderColor: colors.border
           }}>
-            <View style={{
-              backgroundColor: colors.background,
-              borderRadius: 12,
-              padding: 20,
-              width: '100%',
-              maxWidth: 400,
-              borderWidth: 2,
-              borderColor: colors.border
-            }}>
-              <View style={{ alignItems: 'center', marginBottom: 20 }}>
-                <Icon name="warning" size={40} style={{ marginBottom: 10 }} />
-                <Text style={[commonStyles.subtitle, { textAlign: 'center' }]}>
-                  Confirm Delete
-                </Text>
-                <Text style={[commonStyles.text, { textAlign: 'center', color: colors.textSecondary }]}>
-                  Are you sure you want to delete this DOPE card? This action cannot be undone.
-                </Text>
-              </View>
-              <View style={{ marginBottom: 10 }}>
-                <Button
-                  text="Cancel"
-                  onPress={() => setShowDeleteConfirm(null)}
-                  style={[buttonStyles.secondary, { marginBottom: 10 }]}
-                />
-                <Button
-                  text="Delete"
-                  onPress={() => showDeleteConfirm && deleteCard(showDeleteConfirm)}
-                  style={buttonStyles.danger}
-                />
-              </View>
+            <View style={{ alignItems: 'center', marginBottom: 20 }}>
+              <Icon name="warning" size={40} style={{ marginBottom: 10 }} />
+              <Text style={[commonStyles.subtitle, { textAlign: 'center' }]}>
+                Confirm Delete
+              </Text>
+              <Text style={[commonStyles.text, { textAlign: 'center', color: colors.textSecondary }]}>
+                Are you sure you want to delete this DOPE card? This action cannot be undone.
+              </Text>
+            </View>
+            <View style={{ marginBottom: 10 }}>
+              <Button
+                text="Cancel"
+                onPress={() => setShowDeleteConfirm(null)}
+                style={[buttonStyles.secondary, { marginBottom: 10 }]}
+              />
+              <Button
+                text="Delete"
+                onPress={() => showDeleteConfirm && deleteCard(showDeleteConfirm)}
+                style={buttonStyles.danger}
+              />
             </View>
           </View>
-        </Modal>
-      </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
