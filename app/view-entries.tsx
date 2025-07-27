@@ -108,6 +108,18 @@ export default function ViewEntriesScreen() {
     );
   };
 
+  const editEntry = (entry: RangeEntry) => {
+    console.log('Editing entry:', entry.id);
+    router.push({
+      pathname: '/add-entry',
+      params: { 
+        editMode: 'true',
+        entryId: entry.id,
+        entryData: JSON.stringify(entry)
+      }
+    });
+  };
+
   const viewEntryDetails = (entry: RangeEntry) => {
     console.log('Viewing entry details for:', entry.id);
     router.push({
@@ -344,22 +356,40 @@ export default function ViewEntriesScreen() {
               Rifle: {entry.rifleName} {entry.rifleCalibber ? `(${entry.rifleCalibber})` : ''}
             </Text>
           </View>
-          <TouchableOpacity
-            onPress={(e) => {
-              e.stopPropagation();
-              deleteEntry(entry.id);
-            }}
-            style={{
-              backgroundColor: colors.error,
-              borderRadius: 6,
-              paddingHorizontal: 12,
-              paddingVertical: 6,
-            }}
-          >
-            <Text style={[commonStyles.text, { fontSize: 12, marginBottom: 0 }]}>
-              Delete
-            </Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity
+              onPress={(e) => {
+                e.stopPropagation();
+                editEntry(entry);
+              }}
+              style={{
+                backgroundColor: colors.accent,
+                borderRadius: 6,
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+              }}
+            >
+              <Text style={[commonStyles.text, { fontSize: 12, marginBottom: 0, color: colors.background }]}>
+                Edit
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={(e) => {
+                e.stopPropagation();
+                deleteEntry(entry.id);
+              }}
+              style={{
+                backgroundColor: colors.error,
+                borderRadius: 6,
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+              }}
+            >
+              <Text style={[commonStyles.text, { fontSize: 12, marginBottom: 0 }]}>
+                Delete
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
         
         <Text style={[commonStyles.text, { textAlign: 'left' }]}>Date: {entry.date}</Text>

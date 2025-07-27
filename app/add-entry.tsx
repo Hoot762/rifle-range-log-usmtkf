@@ -1,6 +1,6 @@
 import { Text, View, SafeAreaView, ScrollView, TextInput, Alert, Image, TouchableOpacity } from 'react-native';
-import { router } from 'expo-router';
-import { useState, useRef } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useState, useRef, useEffect } from 'react';
 import Button from '../components/Button';
 import Icon from '../components/Icon';
 import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
@@ -30,6 +30,11 @@ interface RangeEntry {
 export default function AddEntryScreen() {
   console.log('AddEntryScreen rendered');
 
+  const params = useLocalSearchParams();
+  const isEditMode = params.editMode === 'true';
+  const editEntryId = params.entryId as string;
+  const editEntryData = params.entryData ? JSON.parse(params.entryData as string) as RangeEntry : null;
+
   const [entryName, setEntryName] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -47,6 +52,36 @@ export default function AddEntryScreen() {
 
   // Create refs for each shot input field
   const shotInputRefs = useRef<(TextInput | null)[]>(Array(12).fill(null));
+
+  // Load existing entry data if in edit mode
+  useEffect(() => {
+    if (isEditMode && editEntryData) {
+      console.log('Loading entry data for editing:', editEntryData);
+      setEntryName(editEntryData.entryName || '');
+      setDate(new Date(editEntryData.date));
+      setRifleName(editEntryData.rifleName || '');
+      setRifleCalibber(editEntryData.rifleCalibber || '');
+      setDistance(editEntryData.distance || '');
+      setElevationMOA(editEntryData.elevationMOA || '');
+      setWindageMOA(editEntryData.windageMOA || '');
+      setNotes(editEntryData.notes || '');
+      setScore(editEntryData.score || '');
+      setBullGrainWeight(editEntryData.bullGrainWeight || '');
+      
+      if (editEntryData.shotScores && editEntryData.shotScores.length > 0) {
+        const paddedScores = [...editEntryData.shotScores];
+        while (paddedScores.length < 12) {
+          paddedScores.push('');
+        }
+        setShotScores(paddedScores);
+        setShowShotScores(true);
+      }
+      
+      if (editEntryData.targetImageUri) {
+        setTargetImageUri(editEntryData.targetImageUri);
+      }
+    }
+  }, [isEditMode, editEntryData]);
 
   const onDateChange = (event: any, selectedDate?: Date) => {
     console.log('Date picker event:', event.type, selectedDate);
@@ -203,6 +238,20 @@ export default function AddEntryScreen() {
     if (!result.canceled && result.assets[0]) {
       try {
         const savedUri = await saveImageToAppDirectory(result.assets[0].uri);
+        
+        // If editing and there was a previous image, delete it
+        if (isEditMode && targetImageUri && targetImageUri !== savedUri) {
+          try {
+            const fileInfo = await FileSystem.getInfoAsync(targetImageUri);
+            if (fileInfo.exists) {
+              await FileSystem.deleteAsync(targetImageUri);
+              console.log('Deleted old image file:', targetImageUri);
+            }
+          } catch (error) {
+            console.error('Error deleting old image file:', error);
+          }
+        }
+        
         setTargetImageUri(savedUri);
         console.log('Image captured and saved:', savedUri);
       } catch (error) {
@@ -225,6 +274,20 @@ export default function AddEntryScreen() {
     if (!result.canceled && result.assets[0]) {
       try {
         const savedUri = await saveImageToAppDirectory(result.assets[0].uri);
+        
+        // If editing and there was a previous image, delete it
+        if (isEditMode && targetImageUri && targetImageUri !== savedUri) {
+          try {
+            const fileInfo = await FileSystem.getInfoAsync(targetImageUri);
+            if (fileInfo.exists) {
+              await FileSystem.deleteAsync(targetImageUri);
+              console.log('Deleted old image file:', targetImageUri);
+            }
+          } catch (error) {
+            console.error('Error deleting old image file:', error);
+          }
+        }
+        
         setTargetImageUri(savedUri);
         console.log('Image selected and saved:', savedUri);
       } catch (error) {
@@ -252,7 +315,7 @@ export default function AddEntryScreen() {
   };
 
   const saveEntry = async () => {
-    console.log('Saving entry...');
+    console.log(isEditMode ? 'Updating entry...' : 'Saving entry...');
     
     if (!entryName.trim()) {
       Alert.alert('Error', 'Entry name is required');
@@ -271,7 +334,7 @@ export default function AddEntryScreen() {
     console.log('Valid shot scores:', validShotScores);
 
     const entry: RangeEntry = {
-      id: Date.now().toString(),
+      id: isEditMode ? editEntryId : Date.now().toString(),
       entryName: entryName.trim(),
       date: date.toISOString().split('T')[0],
       rifleName: rifleName.trim(),
@@ -284,20 +347,37 @@ export default function AddEntryScreen() {
       shotScores: validShotScores.length > 0 ? validShotScores : undefined,
       bullGrainWeight: bullGrainWeight.trim(),
       targetImageUri: targetImageUri || undefined,
-      timestamp: Date.now(),
+      timestamp: isEditMode ? editEntryData!.timestamp : Date.now(),
     };
 
     try {
       const existingData = await AsyncStorage.getItem('rangeEntries');
       const entries: RangeEntry[] = existingData ? JSON.parse(existingData) : [];
-      entries.push(entry);
+      
+      if (isEditMode) {
+        // Update existing entry
+        const entryIndex = entries.findIndex(e => e.id === editEntryId);
+        if (entryIndex !== -1) {
+          entries[entryIndex] = entry;
+          console.log('Entry updated successfully:', entry);
+        } else {
+          console.error('Entry not found for update');
+          Alert.alert('Error', 'Entry not found. Please try again.');
+          return;
+        }
+      } else {
+        // Add new entry
+        entries.push(entry);
+        console.log('Entry saved successfully:', entry);
+      }
       
       await AsyncStorage.setItem('rangeEntries', JSON.stringify(entries));
-      console.log('Entry saved successfully:', entry);
       
-      Alert.alert('Success', 'Range entry saved successfully!', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
+      Alert.alert(
+        'Success', 
+        isEditMode ? 'Range entry updated successfully!' : 'Range entry saved successfully!', 
+        [{ text: 'OK', onPress: () => router.back() }]
+      );
     } catch (error) {
       console.error('Error saving entry:', error);
       Alert.alert('Error', 'Failed to save entry. Please try again.');
@@ -305,7 +385,7 @@ export default function AddEntryScreen() {
   };
 
   const goBack = () => {
-    console.log('Going back to home screen');
+    console.log('Going back to previous screen');
     router.back();
   };
 
@@ -365,9 +445,8 @@ export default function AddEntryScreen() {
           textAlign: 'center',
           color: colors.grey
         }]}>
-          Enter scores for up to 12 individual shots. Use "v" for V-ring hits (5 points each).
+          Enter scores for up to 12 individual shots. Use "v" for V-Bull hits (5 points each).
           {'\n'}Total score will be calculated automatically.
-          {'\n'}The cursor will automatically move to the next shot after entering a score.
         </Text>
         {rows}
         <View style={[commonStyles.row, { marginTop: 15 }]}>
@@ -411,8 +490,15 @@ export default function AddEntryScreen() {
     <SafeAreaView style={commonStyles.wrapper}>
       <ScrollView contentContainerStyle={commonStyles.scrollContent}>
         <View style={{ alignItems: 'center', marginBottom: 20 }}>
-          <Icon name="add-circle" size={60} style={{ marginBottom: 10 }} />
-          <Text style={commonStyles.title}>Add Range Entry</Text>
+          <Icon name={isEditMode ? "create" : "add-circle"} size={60} style={{ marginBottom: 10 }} />
+          <Text style={commonStyles.title}>
+            {isEditMode ? 'Edit Range Entry' : 'Add Range Entry'}
+          </Text>
+          {isEditMode && (
+            <Text style={[commonStyles.text, { color: colors.grey, fontSize: 14 }]}>
+              Editing: {editEntryData?.entryName || 'Unnamed Entry'}
+            </Text>
+          )}
         </View>
 
         <View style={commonStyles.card}>
@@ -634,7 +720,7 @@ export default function AddEntryScreen() {
 
         <View style={commonStyles.buttonContainer}>
           <Button
-            text="Save Entry"
+            text={isEditMode ? "Update Entry" : "Save Entry"}
             onPress={saveEntry}
             style={buttonStyles.primary}
           />

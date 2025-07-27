@@ -30,7 +30,7 @@ export default function HomeScreen() {
           <Icon name="rifle" size={80} style={{ marginBottom: 20 }} />
           <Text style={commonStyles.title}>Rifle Range Logger</Text>
           <Text style={commonStyles.text}>
-            Track your rifle range data including scope settings, distances, and performance metrics.
+            Track your rifle range data including scope settings, distances, and scores.
           </Text>
           
           <View style={commonStyles.section}>
