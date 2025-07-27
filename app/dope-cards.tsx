@@ -730,9 +730,9 @@ export default function DopeCardsScreen() {
 
       <View style={commonStyles.buttonContainer}>
         <Button
-          text={isImporting ? "Importing..." : "Load Data"}
+          text={isImporting ? "Importing..." : "Import Data"}
           onPress={selectAndImportJsonFile}
-          style={[buttonStyles.secondary, {
+          style={[buttonStyles.accent, {
             opacity: isImporting ? 0.6 : 1
           }]}
         />
