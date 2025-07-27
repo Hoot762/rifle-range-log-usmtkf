@@ -82,7 +82,11 @@ export default function AddEntryScreen() {
           setWindageMOA(entryToEdit.windageMOA || '');
           setNotes(entryToEdit.notes || '');
           setScore(entryToEdit.score || '');
-          setBullGrainWeight(entryToEdit.bullGrainWeight || '');
+          
+          // Handle bull grain weight - extract numeric value if it contains "gr"
+          const grainWeight = entryToEdit.bullGrainWeight || '';
+          const numericValue = grainWeight.replace(/[^0-9.]/g, '');
+          setBullGrainWeight(numericValue);
           
           if (entryToEdit.shotScores && entryToEdit.shotScores.length > 0) {
             const paddedScores = [...entryToEdit.shotScores];
@@ -198,6 +202,27 @@ export default function AddEntryScreen() {
     setShotScores(Array(12).fill(''));
     setScore('');
     console.log('Cleared all shot scores');
+  };
+
+  const handleBullGrainWeightChange = (value: string) => {
+    // Remove any non-numeric characters except decimal point
+    const numericValue = value.replace(/[^0-9.]/g, '');
+    
+    // Ensure only one decimal point
+    const parts = numericValue.split('.');
+    if (parts.length > 2) {
+      return; // Don't update if more than one decimal point
+    }
+    
+    setBullGrainWeight(numericValue);
+    console.log('Bull grain weight updated to:', numericValue);
+  };
+
+  const formatBullGrainWeightDisplay = () => {
+    if (bullGrainWeight.trim() === '') {
+      return '';
+    }
+    return `${bullGrainWeight} gr`;
   };
 
   const saveImageToAppDirectory = async (sourceUri: string): Promise<string> => {
@@ -367,6 +392,9 @@ export default function AddEntryScreen() {
 
     console.log('Valid shot scores:', validShotScores);
 
+    // Format bull grain weight for storage
+    const formattedBullGrainWeight = bullGrainWeight.trim() !== '' ? `${bullGrainWeight.trim()} gr` : '';
+
     const entry: RangeEntry = {
       id: isEditMode ? editEntryId : Date.now().toString(),
       entryName: entryName.trim(),
@@ -379,7 +407,7 @@ export default function AddEntryScreen() {
       notes: notes.trim(),
       score: score.trim(),
       shotScores: validShotScores.length > 0 ? validShotScores : undefined,
-      bullGrainWeight: bullGrainWeight.trim(),
+      bullGrainWeight: formattedBullGrainWeight,
       targetImageUri: targetImageUri || undefined,
       timestamp: isEditMode ? Date.now() : Date.now(), // Update timestamp for edited entries
     };
@@ -646,14 +674,45 @@ export default function AddEntryScreen() {
           </View>
 
           <Text style={commonStyles.label}>Bull Grain Weight</Text>
-          <TextInput
-            style={commonStyles.input}
-            value={bullGrainWeight}
-            onChangeText={setBullGrainWeight}
-            placeholder="e.g., 168 gr"
-            placeholderTextColor={colors.grey}
-            returnKeyType="next"
-          />
+          <View style={{ position: 'relative' }}>
+            <TextInput
+              style={commonStyles.input}
+              value={bullGrainWeight}
+              onChangeText={handleBullGrainWeightChange}
+              placeholder="168"
+              placeholderTextColor={colors.grey}
+              keyboardType="decimal-pad"
+              returnKeyType="next"
+            />
+            {bullGrainWeight.trim() !== '' && (
+              <View style={{
+                position: 'absolute',
+                right: 15,
+                top: 0,
+                bottom: 0,
+                justifyContent: 'center',
+                pointerEvents: 'none'
+              }}>
+                <Text style={{
+                  color: colors.text,
+                  fontSize: 16,
+                  fontWeight: '500'
+                }}>
+                  gr
+                </Text>
+              </View>
+            )}
+          </View>
+          {bullGrainWeight.trim() !== '' && (
+            <Text style={[commonStyles.text, { 
+              fontSize: 12, 
+              color: colors.grey,
+              marginTop: 5,
+              fontStyle: 'italic'
+            }]}>
+              Will be saved as: {formatBullGrainWeightDisplay()}
+            </Text>
+          )}
 
           <Text style={commonStyles.label}>Overall Score (Points)</Text>
           <TextInput
