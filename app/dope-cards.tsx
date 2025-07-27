@@ -147,14 +147,58 @@ export default function DopeCardsScreen() {
     Alert.alert('Success', 'DOPE card deleted successfully');
   };
 
-  const updateRange = (range: string, field: 'elevation' | 'windage', value: string) => {
+  // Helper function to extract numeric value from MOA string
+  const extractNumericValue = (value: string): string => {
+    if (!value) return '';
+    // Remove 'MOA' and any extra spaces, keep only numbers, decimal points, and minus signs
+    return value.replace(/\s*MOA\s*$/i, '').replace(/[^0-9.-]/g, '');
+  };
+
+  // Helper function to format value with MOA suffix
+  const formatWithMOA = (value: string): string => {
+    const numericValue = extractNumericValue(value);
+    if (!numericValue || numericValue === '' || numericValue === '-') {
+      return numericValue;
+    }
+    return `${numericValue} MOA`;
+  };
+
+  // Helper function to validate numeric input
+  const isValidNumericInput = (value: string): boolean => {
+    if (!value) return true;
+    // Allow numbers, decimal points, and minus signs
+    const numericPattern = /^-?\d*\.?\d*$/;
+    return numericPattern.test(value);
+  };
+
+  const handleMOAInputChange = (range: string, field: 'elevation' | 'windage', value: string) => {
+    console.log(`Handling MOA input change for ${range} ${field}:`, value);
+    
+    // Extract numeric part from the input
+    const numericValue = extractNumericValue(value);
+    
+    // Validate that it's a valid numeric input
+    if (!isValidNumericInput(numericValue)) {
+      console.log('Invalid numeric input, ignoring');
+      return;
+    }
+
+    // Format the value with MOA suffix if there's a numeric value
+    const formattedValue = formatWithMOA(numericValue);
+    console.log('Formatted value:', formattedValue);
+
+    // Update the state
     setRanges(prev => ({
       ...prev,
       [range]: {
         ...prev[range],
-        [field]: value
+        [field]: formattedValue
       }
     }));
+  };
+
+  const updateRange = (range: string, field: 'elevation' | 'windage', value: string) => {
+    handleMOAInputChange(range, field, value);
   };
 
   const goBack = () => {
