@@ -293,14 +293,6 @@ export default function DopeCardsScreen() {
   const selectAndImportJsonFile = async () => {
     console.log('Starting DOPE cards import process...');
     
-    // Prevent multiple simultaneous imports
-    if (isImporting) {
-      console.log('Import already in progress, ignoring request');
-      return;
-    }
-
-    setIsImporting(true);
-
     try {
       console.log('Opening document picker for JSON file selection...');
       
@@ -342,6 +334,9 @@ export default function DopeCardsScreen() {
         Alert.alert('Error', 'File is too large. Please select a file smaller than 10MB.');
         return;
       }
+
+      // Now show the processing modal since we have a valid file
+      setIsImporting(true);
 
       // Read the file content
       console.log('Reading file content from:', file.uri);
@@ -779,14 +774,12 @@ export default function DopeCardsScreen() {
       <View style={commonStyles.buttonContainer}>
         <TouchableOpacity
           onPress={selectAndImportJsonFile}
-          disabled={isImporting}
           style={{
             backgroundColor: '#FF8C00',
             borderRadius: 8,
             paddingVertical: 12,
             paddingHorizontal: 20,
             alignItems: 'center',
-            opacity: isImporting ? 0.6 : 1,
             marginBottom: 10,
           }}
         >
@@ -795,7 +788,7 @@ export default function DopeCardsScreen() {
             fontSize: 16,
             fontWeight: 'bold',
           }}>
-            {isImporting ? "Importing..." : "Import Data"}
+            Import Data
           </Text>
         </TouchableOpacity>
       </View>
