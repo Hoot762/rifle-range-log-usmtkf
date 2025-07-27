@@ -306,7 +306,7 @@ export default function DopeCardsScreen() {
       
       // Open document picker to select JSON file
       const result = await DocumentPicker.getDocumentAsync({
-        type: ['application/json', 'text/plain', '*/*'],
+        type: ['application/json', 'text/plain', 'text/json'],
         copyToCacheDirectory: true,
         multiple: false,
       });
