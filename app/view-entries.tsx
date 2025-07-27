@@ -1,6 +1,7 @@
 import { Text, View, SafeAreaView, ScrollView, Alert, Image, TouchableOpacity, Modal, TextInput } from 'react-native';
 import { router } from 'expo-router';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import Button from '../components/Button';
 import Icon from '../components/Icon';
 import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
@@ -43,9 +44,13 @@ export default function ViewEntriesScreen() {
   const [fileName, setFileName] = useState('range_data_export');
   const [isExporting, setIsExporting] = useState(false);
 
-  useEffect(() => {
-    loadEntries();
-  }, []);
+  // Use useFocusEffect to reload entries whenever the screen gains focus
+  useFocusEffect(
+    useCallback(() => {
+      console.log('Screen focused, reloading entries...');
+      loadEntries();
+    }, [])
+  );
 
   const loadEntries = async () => {
     console.log('Loading entries...');
