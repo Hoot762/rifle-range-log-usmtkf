@@ -77,7 +77,12 @@ export default function AddEntryScreen() {
           setDate(new Date(entryToEdit.date));
           setRifleName(entryToEdit.rifleName || '');
           setRifleCalibber(entryToEdit.rifleCalibber || '');
-          setDistance(entryToEdit.distance || '');
+          
+          // Handle distance - extract numeric value if it contains "yards"
+          const distanceValue = entryToEdit.distance || '';
+          const numericDistance = distanceValue.replace(/[^0-9.]/g, '');
+          setDistance(numericDistance);
+          
           setElevationMOA(entryToEdit.elevationMOA || '');
           setWindageMOA(entryToEdit.windageMOA || '');
           setNotes(entryToEdit.notes || '');
@@ -202,6 +207,27 @@ export default function AddEntryScreen() {
     setShotScores(Array(12).fill(''));
     setScore('');
     console.log('Cleared all shot scores');
+  };
+
+  const handleDistanceChange = (value: string) => {
+    // Remove any non-numeric characters except decimal point
+    const numericValue = value.replace(/[^0-9.]/g, '');
+    
+    // Ensure only one decimal point
+    const parts = numericValue.split('.');
+    if (parts.length > 2) {
+      return; // Don't update if more than one decimal point
+    }
+    
+    setDistance(numericValue);
+    console.log('Distance updated to:', numericValue);
+  };
+
+  const formatDistanceDisplay = () => {
+    if (distance.trim() === '') {
+      return '';
+    }
+    return `${distance} yards`;
   };
 
   const handleBullGrainWeightChange = (value: string) => {
@@ -392,6 +418,9 @@ export default function AddEntryScreen() {
 
     console.log('Valid shot scores:', validShotScores);
 
+    // Format distance for storage
+    const formattedDistance = distance.trim() !== '' ? `${distance.trim()} yards` : '';
+
     // Format bull grain weight for storage
     const formattedBullGrainWeight = bullGrainWeight.trim() !== '' ? `${bullGrainWeight.trim()} gr` : '';
 
@@ -401,7 +430,7 @@ export default function AddEntryScreen() {
       date: date.toISOString().split('T')[0],
       rifleName: rifleName.trim(),
       rifleCalibber: rifleCalibber.trim(),
-      distance: distance.trim(),
+      distance: formattedDistance,
       elevationMOA: elevationMOA.trim(),
       windageMOA: windageMOA.trim(),
       notes: notes.trim(),
@@ -579,7 +608,7 @@ export default function AddEntryScreen() {
             style={commonStyles.input}
             value={entryName}
             onChangeText={setEntryName}
-            placeholder="e.g., Morning Practice Session, Competition Round 1"
+            placeholder="e.g. Morning Practice Session, Competition Round 1"
             placeholderTextColor={colors.grey}
             returnKeyType="next"
           />
@@ -630,20 +659,51 @@ export default function AddEntryScreen() {
             style={commonStyles.input}
             value={rifleCalibber}
             onChangeText={setRifleCalibber}
-            placeholder="e.g., .308 Winchester"
+            placeholder="e.g. 308 Winchester"
             placeholderTextColor={colors.grey}
             returnKeyType="next"
           />
 
           <Text style={commonStyles.label}>Distance *</Text>
-          <TextInput
-            style={commonStyles.input}
-            value={distance}
-            onChangeText={setDistance}
-            placeholder="e.g., 100 yards"
-            placeholderTextColor={colors.grey}
-            returnKeyType="next"
-          />
+          <View style={{ position: 'relative' }}>
+            <TextInput
+              style={commonStyles.input}
+              value={distance}
+              onChangeText={handleDistanceChange}
+              placeholder="e.g. 100"
+              placeholderTextColor={colors.grey}
+              keyboardType="decimal-pad"
+              returnKeyType="next"
+            />
+            {distance.trim() !== '' && (
+              <View style={{
+                position: 'absolute',
+                right: 15,
+                top: 0,
+                bottom: 0,
+                justifyContent: 'center',
+                pointerEvents: 'none'
+              }}>
+                <Text style={{
+                  color: colors.text,
+                  fontSize: 16,
+                  fontWeight: '500'
+                }}>
+                  yards
+                </Text>
+              </View>
+            )}
+          </View>
+          {distance.trim() !== '' && (
+            <Text style={[commonStyles.text, { 
+              fontSize: 12, 
+              color: colors.grey,
+              marginTop: 5,
+              fontStyle: 'italic'
+            }]}>
+              Will be saved as: {formatDistanceDisplay()}
+            </Text>
+          )}
 
           <View style={commonStyles.row}>
             <View style={commonStyles.halfWidth}>
@@ -679,7 +739,7 @@ export default function AddEntryScreen() {
               style={commonStyles.input}
               value={bullGrainWeight}
               onChangeText={handleBullGrainWeightChange}
-              placeholder="168"
+              placeholder="e.g. 168"
               placeholderTextColor={colors.grey}
               keyboardType="decimal-pad"
               returnKeyType="next"
@@ -719,7 +779,7 @@ export default function AddEntryScreen() {
             style={commonStyles.input}
             value={score}
             onChangeText={setScore}
-            placeholder="e.g., 95, 180/200, or auto-calculated from shots"
+            placeholder="e.g. 50.1 or auto-calculated from shots"
             placeholderTextColor={colors.grey}
             returnKeyType="next"
           />
