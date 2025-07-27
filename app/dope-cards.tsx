@@ -23,6 +23,229 @@ interface DOPECard {
 const RANGES = ['600', '700', '800', '900', '1000', '1100', '1200'];
 const STORAGE_KEY = 'dope_cards';
 
+const styles = StyleSheet.create({
+  formContainer: {
+    padding: 20,
+  },
+  formTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: colors.text,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  input: {
+    backgroundColor: colors.surface,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: colors.text,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.text,
+    marginBottom: 15,
+    marginTop: 10,
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 5,
+  },
+  headerCell: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: colors.surface,
+    textAlign: 'center',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  rangeCell: {
+    flex: 1,
+    fontSize: 14,
+    color: colors.text,
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  dataInput: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: 6,
+    padding: 8,
+    fontSize: 14,
+    color: colors.text,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginHorizontal: 5,
+    textAlign: 'center',
+  },
+  formButtons: {
+    flexDirection: 'row',
+    marginTop: 30,
+  },
+  listContainer: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    paddingBottom: 10,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: colors.text,
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  cardsList: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  cardItem: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  cardInfo: {
+    flex: 1,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  cardSubtitle: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  cardActions: {
+    flexDirection: 'row',
+  },
+  actionButton: {
+    padding: 8,
+    marginLeft: 8,
+    borderRadius: 6,
+    backgroundColor: colors.background,
+  },
+  deleteButton: {
+    backgroundColor: colors.error + '20',
+  },
+  rangeData: {
+    backgroundColor: colors.background,
+    borderRadius: 8,
+    padding: 12,
+  },
+  rangeHeader: {
+    flexDirection: 'row',
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    marginBottom: 8,
+  },
+  rangeHeaderText: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  rangeRow: {
+    flexDirection: 'row',
+    paddingVertical: 4,
+  },
+  rangeText: {
+    flex: 1,
+    fontSize: 12,
+    color: colors.text,
+    textAlign: 'center',
+  },
+  rangeValue: {
+    flex: 1,
+    fontSize: 12,
+    color: colors.text,
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    padding: 24,
+    margin: 20,
+    minWidth: 300,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.text,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  modalText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginBottom: 20,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+  },
+});
+
 export default function DopeCardsScreen() {
   console.log('DopeCardsScreen component rendered');
 
@@ -354,226 +577,3 @@ export default function DopeCardsScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  formContainer: {
-    padding: 20,
-  },
-  formTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.text,
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: colors.surface,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    color: colors.text,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.text,
-    marginBottom: 15,
-    marginTop: 10,
-  },
-  tableHeader: {
-    flexDirection: 'row',
-    backgroundColor: colors.primary,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 5,
-  },
-  headerCell: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.surface,
-    textAlign: 'center',
-  },
-  tableRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  rangeCell: {
-    flex: 1,
-    fontSize: 14,
-    color: colors.text,
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  dataInput: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: 6,
-    padding: 8,
-    fontSize: 14,
-    color: colors.text,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginHorizontal: 5,
-    textAlign: 'center',
-  },
-  formButtons: {
-    flexDirection: 'row',
-    marginTop: 30,
-  },
-  listContainer: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    paddingBottom: 10,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.text,
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
-  cardsList: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  cardItem: {
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  cardInfo: {
-    flex: 1,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.text,
-    marginBottom: 4,
-  },
-  cardSubtitle: {
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-  cardActions: {
-    flexDirection: 'row',
-  },
-  actionButton: {
-    padding: 8,
-    marginLeft: 8,
-    borderRadius: 6,
-    backgroundColor: colors.background,
-  },
-  deleteButton: {
-    backgroundColor: colors.error + '20',
-  },
-  rangeData: {
-    backgroundColor: colors.background,
-    borderRadius: 8,
-    padding: 12,
-  },
-  rangeHeader: {
-    flexDirection: 'row',
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    marginBottom: 8,
-  },
-  rangeHeaderText: {
-    flex: 1,
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
-  rangeRow: {
-    flexDirection: 'row',
-    paddingVertical: 4,
-  },
-  rangeText: {
-    flex: 1,
-    fontSize: 12,
-    color: colors.text,
-    textAlign: 'center',
-  },
-  rangeValue: {
-    flex: 1,
-    fontSize: 12,
-    color: colors.text,
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 24,
-    margin: 20,
-    minWidth: 300,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.text,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  modalText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginBottom: 20,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-  },
-});
