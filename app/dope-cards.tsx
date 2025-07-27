@@ -306,7 +306,7 @@ export default function DopeCardsScreen() {
       
       // Open document picker to select JSON file
       const result = await DocumentPicker.getDocumentAsync({
-        type: ['application/json', 'text/plain'],
+        type: ['application/json', 'text/plain', '*/*'],
         copyToCacheDirectory: true,
         multiple: false,
       });
@@ -316,7 +316,6 @@ export default function DopeCardsScreen() {
       // Handle the new result format from expo-document-picker
       if (result.canceled) {
         console.log('File selection cancelled by user');
-        Alert.alert('Import Cancelled', 'No file was selected.');
         return;
       }
 
@@ -329,9 +328,10 @@ export default function DopeCardsScreen() {
       const file = result.assets[0];
       console.log(`Selected file: ${file.name}, size: ${file.size} bytes, type: ${file.mimeType}`);
 
-      // Validate file type
-      if (file.mimeType && !file.mimeType.includes('json') && !file.mimeType.includes('text')) {
-        console.log('Invalid file type selected:', file.mimeType);
+      // Check file extension if MIME type is not reliable
+      const fileName = file.name?.toLowerCase() || '';
+      if (!fileName.endsWith('.json') && file.mimeType && !file.mimeType.includes('json') && !file.mimeType.includes('text')) {
+        console.log('Invalid file type selected:', file.mimeType, 'filename:', fileName);
         Alert.alert('Error', 'Please select a JSON file (.json).');
         return;
       }
@@ -363,7 +363,6 @@ export default function DopeCardsScreen() {
       // Provide more specific error messages
       if (error.message && error.message.includes('cancelled')) {
         console.log('File selection was cancelled');
-        Alert.alert('Import Cancelled', 'File selection was cancelled.');
       } else if (error.message && error.message.includes('permission')) {
         console.log('Permission error');
         Alert.alert('Permission Error', 'Unable to access the selected file. Please check app permissions.');
@@ -778,18 +777,27 @@ export default function DopeCardsScreen() {
       )}
 
       <View style={commonStyles.buttonContainer}>
-        <Button
-          text={isImporting ? "Importing..." : "Import Data"}
+        <TouchableOpacity
           onPress={selectAndImportJsonFile}
-          style={[{
-            backgroundColor: colors.accent,
+          disabled={isImporting}
+          style={{
+            backgroundColor: '#FF8C00',
             borderRadius: 8,
             paddingVertical: 12,
             paddingHorizontal: 20,
             alignItems: 'center',
-            opacity: isImporting ? 0.6 : 1
-          }]}
-        />
+            opacity: isImporting ? 0.6 : 1,
+            marginBottom: 10,
+          }}
+        >
+          <Text style={{
+            color: colors.background,
+            fontSize: 16,
+            fontWeight: 'bold',
+          }}>
+            {isImporting ? "Importing..." : "Import Data"}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <View style={commonStyles.buttonContainer}>
