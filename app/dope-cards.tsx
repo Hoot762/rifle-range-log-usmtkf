@@ -244,6 +244,14 @@ const styles = StyleSheet.create({
   modalButtons: {
     flexDirection: 'row',
   },
+  scrollContentContainer: {
+    flexGrow: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    maxWidth: 800,
+    width: '100%',
+    paddingHorizontal: 20,
+  },
 });
 
 export default function DopeCardsScreen() {
@@ -542,7 +550,10 @@ export default function DopeCardsScreen() {
           </Text>
         </View>
 
-        <ScrollView style={commonStyles.content}>
+        <ScrollView 
+          style={{ flex: 1 }}
+          contentContainerStyle={styles.scrollContentContainer}
+        >
           {isAddingCard ? renderCardForm() : renderCardsList()}
         </ScrollView>
 
