@@ -114,8 +114,7 @@ export default function ViewEntriesScreen() {
       pathname: '/add-entry',
       params: { 
         editMode: 'true',
-        entryId: entry.id,
-        entryData: JSON.stringify(entry)
+        entryId: entry.id
       }
     });
   };

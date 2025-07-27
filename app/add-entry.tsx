@@ -33,7 +33,6 @@ export default function AddEntryScreen() {
   const params = useLocalSearchParams();
   const isEditMode = params.editMode === 'true';
   const editEntryId = params.entryId as string;
-  const editEntryData = params.entryData ? JSON.parse(params.entryData as string) as RangeEntry : null;
 
   const [entryName, setEntryName] = useState('');
   const [date, setDate] = useState(new Date());
@@ -49,39 +48,74 @@ export default function AddEntryScreen() {
   const [shotScores, setShotScores] = useState<string[]>(Array(12).fill(''));
   const [targetImageUri, setTargetImageUri] = useState<string | null>(null);
   const [showShotScores, setShowShotScores] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Create refs for each shot input field
   const shotInputRefs = useRef<(TextInput | null)[]>(Array(12).fill(null));
 
   // Load existing entry data if in edit mode
   useEffect(() => {
-    if (isEditMode && editEntryData) {
-      console.log('Loading entry data for editing:', editEntryData);
-      setEntryName(editEntryData.entryName || '');
-      setDate(new Date(editEntryData.date));
-      setRifleName(editEntryData.rifleName || '');
-      setRifleCalibber(editEntryData.rifleCalibber || '');
-      setDistance(editEntryData.distance || '');
-      setElevationMOA(editEntryData.elevationMOA || '');
-      setWindageMOA(editEntryData.windageMOA || '');
-      setNotes(editEntryData.notes || '');
-      setScore(editEntryData.score || '');
-      setBullGrainWeight(editEntryData.bullGrainWeight || '');
-      
-      if (editEntryData.shotScores && editEntryData.shotScores.length > 0) {
-        const paddedScores = [...editEntryData.shotScores];
-        while (paddedScores.length < 12) {
-          paddedScores.push('');
-        }
-        setShotScores(paddedScores);
-        setShowShotScores(true);
-      }
-      
-      if (editEntryData.targetImageUri) {
-        setTargetImageUri(editEntryData.targetImageUri);
-      }
+    if (isEditMode && editEntryId) {
+      loadEntryForEdit();
     }
-  }, [isEditMode, editEntryData]);
+  }, [isEditMode, editEntryId]);
+
+  const loadEntryForEdit = async () => {
+    console.log('Loading entry for edit, ID:', editEntryId);
+    setLoading(true);
+    
+    try {
+      const data = await AsyncStorage.getItem('rangeEntries');
+      if (data) {
+        const entries: RangeEntry[] = JSON.parse(data);
+        const entryToEdit = entries.find(entry => entry.id === editEntryId);
+        
+        if (entryToEdit) {
+          console.log('Found entry to edit:', entryToEdit);
+          
+          setEntryName(entryToEdit.entryName || '');
+          setDate(new Date(entryToEdit.date));
+          setRifleName(entryToEdit.rifleName || '');
+          setRifleCalibber(entryToEdit.rifleCalibber || '');
+          setDistance(entryToEdit.distance || '');
+          setElevationMOA(entryToEdit.elevationMOA || '');
+          setWindageMOA(entryToEdit.windageMOA || '');
+          setNotes(entryToEdit.notes || '');
+          setScore(entryToEdit.score || '');
+          setBullGrainWeight(entryToEdit.bullGrainWeight || '');
+          
+          if (entryToEdit.shotScores && entryToEdit.shotScores.length > 0) {
+            const paddedScores = [...entryToEdit.shotScores];
+            while (paddedScores.length < 12) {
+              paddedScores.push('');
+            }
+            setShotScores(paddedScores);
+            setShowShotScores(true);
+          }
+          
+          if (entryToEdit.targetImageUri) {
+            setTargetImageUri(entryToEdit.targetImageUri);
+          }
+          
+          console.log('Entry data loaded successfully for editing');
+        } else {
+          console.error('Entry not found for editing');
+          Alert.alert('Error', 'Entry not found. Please try again.');
+          router.back();
+        }
+      } else {
+        console.error('No entries data found');
+        Alert.alert('Error', 'No entries found. Please try again.');
+        router.back();
+      }
+    } catch (error) {
+      console.error('Error loading entry for edit:', error);
+      Alert.alert('Error', 'Failed to load entry data. Please try again.');
+      router.back();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const onDateChange = (event: any, selectedDate?: Date) => {
     console.log('Date picker event:', event.type, selectedDate);
@@ -347,7 +381,7 @@ export default function AddEntryScreen() {
       shotScores: validShotScores.length > 0 ? validShotScores : undefined,
       bullGrainWeight: bullGrainWeight.trim(),
       targetImageUri: targetImageUri || undefined,
-      timestamp: isEditMode ? editEntryData!.timestamp : Date.now(),
+      timestamp: isEditMode ? Date.now() : Date.now(), // Update timestamp for edited entries
     };
 
     try {
@@ -486,6 +520,16 @@ export default function AddEntryScreen() {
     });
   };
 
+  if (loading) {
+    return (
+      <SafeAreaView style={commonStyles.wrapper}>
+        <View style={commonStyles.container}>
+          <Text style={commonStyles.text}>Loading entry data...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={commonStyles.wrapper}>
       <ScrollView contentContainerStyle={commonStyles.scrollContent}>
@@ -496,7 +540,7 @@ export default function AddEntryScreen() {
           </Text>
           {isEditMode && (
             <Text style={[commonStyles.text, { color: colors.grey, fontSize: 14 }]}>
-              Editing: {editEntryData?.entryName || 'Unnamed Entry'}
+              Editing: {entryName || 'Unnamed Entry'}
             </Text>
           )}
         </View>
