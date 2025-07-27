@@ -24,8 +24,13 @@ export default function HomeScreen() {
   };
 
   const navigateToDopeCards = () => {
-    console.log('Navigating to DOPE cards screen');
-    router.push('/dope-cards');
+    console.log('DOPE button clicked - attempting navigation to dope-cards');
+    try {
+      router.push('/dope-cards');
+      console.log('Navigation to dope-cards initiated successfully');
+    } catch (error) {
+      console.error('Error navigating to dope-cards:', error);
+    }
   };
 
   return (

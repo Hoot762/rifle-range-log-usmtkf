@@ -24,7 +24,7 @@ const RANGES = ['600', '700', '800', '900', '1000', '1100', '1200'];
 const STORAGE_KEY = 'dope_cards';
 
 export default function DopeCardsScreen() {
-  console.log('DopeCardsScreen rendered');
+  console.log('DopeCardsScreen component rendered');
 
   const [dopeCards, setDopeCards] = useState<DOPECard[]>([]);
   const [isAddingCard, setIsAddingCard] = useState(false);
@@ -35,11 +35,13 @@ export default function DopeCardsScreen() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('DopeCardsScreen useEffect running');
     loadDopeCards();
     initializeRanges();
   }, []);
 
   const initializeRanges = () => {
+    console.log('Initializing ranges');
     const initialRanges: { [range: string]: { elevation: string; windage: string } } = {};
     RANGES.forEach(range => {
       initialRanges[range] = { elevation: '', windage: '' };
@@ -55,6 +57,8 @@ export default function DopeCardsScreen() {
         const parsedCards = JSON.parse(storedCards);
         setDopeCards(parsedCards);
         console.log('Loaded DOPE cards:', parsedCards.length);
+      } else {
+        console.log('No DOPE cards found in storage');
       }
     } catch (error) {
       console.error('Error loading DOPE cards:', error);
@@ -300,6 +304,8 @@ export default function DopeCardsScreen() {
       )}
     </View>
   );
+
+  console.log('DopeCardsScreen about to render, isAddingCard:', isAddingCard);
 
   return (
     <SafeAreaView style={commonStyles.wrapper}>

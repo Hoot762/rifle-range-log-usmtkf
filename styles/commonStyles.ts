@@ -6,7 +6,9 @@ export const colors = {
   accent: '#FF8C00',       // Orange accent
   background: '#0F2419',   // Very dark green
   backgroundAlt: '#1B4332', // Dark green for cards
+  surface: '#2D5A3D',      // Surface color for cards and inputs
   text: '#FFFFFF',         // White text
+  textSecondary: '#B0B0B0', // Secondary text color
   grey: '#6C757D',         // Grey accent
   card: '#2D5A3D',         // Medium green for cards
   success: '#40916C',      // Success green
@@ -31,6 +33,11 @@ export const buttonStyles = StyleSheet.create({
     alignSelf: 'center',
     width: '100%',
   },
+  danger: {
+    backgroundColor: colors.error,
+    alignSelf: 'center',
+    width: '100%',
+  },
   backButton: {
     backgroundColor: colors.grey,
     alignSelf: 'center',
@@ -49,8 +56,27 @@ export const commonStyles = StyleSheet.create({
     backgroundColor: colors.background,
     width: '100%',
     height: '100%',
-    justifyContent: 'center',
+  },
+  header: {
+    flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    backgroundColor: colors.background,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  backButton: {
+    padding: 8,
+    marginRight: 15,
+    borderRadius: 6,
+    backgroundColor: colors.surface,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.text,
+    flex: 1,
   },
   content: {
     flex: 1,
