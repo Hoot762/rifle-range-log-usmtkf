@@ -72,8 +72,8 @@ export default function HomeScreen() {
               <Button
                 text="DOPE"
                 onPress={navigateToDopeCards}
-                style={buttonStyles.lightGrey}
-                textStyle={{ color: '#000000' }}
+                style={buttonStyles.dopeButton}
+                textStyle={{ color: colors.text }}
               />
             </View>
             
