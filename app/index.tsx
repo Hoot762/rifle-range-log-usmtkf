@@ -1,9 +1,9 @@
-import { Text, View, SafeAreaView } from 'react-native';
+import { Text, View, SafeAreaView, Image, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import Button from '../components/Button';
 import Icon from '../components/Icon';
-import { commonStyles, buttonStyles } from '../styles/commonStyles';
+import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
 
 export default function HomeScreen() {
   console.log('HomeScreen rendered');
@@ -37,7 +37,15 @@ export default function HomeScreen() {
     <SafeAreaView style={commonStyles.wrapper}>
       <View style={commonStyles.container}>
         <View style={commonStyles.content}>
-          <Icon name="rifle" size={80} style={{ marginBottom: 20 }} />
+          {/* Target image in circular container */}
+          <View style={styles.targetImageContainer}>
+            <Image 
+              source={require('../assets/images/0c6f758e-3623-49b9-8253-850b43db8407.png')}
+              style={styles.targetImage}
+              resizeMode="cover"
+            />
+          </View>
+          
           <Text style={commonStyles.title}>Rifle Range Logger</Text>
           <Text style={commonStyles.text}>
             Track your rifle range data including scope settings, distances, and scores.
@@ -82,3 +90,21 @@ export default function HomeScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  targetImageContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    overflow: 'hidden',
+    marginBottom: 20,
+    borderWidth: 3,
+    borderColor: colors.border,
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.4)',
+    elevation: 6,
+  },
+  targetImage: {
+    width: '100%',
+    height: '100%',
+  },
+});
