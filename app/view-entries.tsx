@@ -356,14 +356,14 @@ export default function ViewEntriesScreen() {
           {entry.entryName || 'Unnamed Entry'}
         </Text>
         
-        {/* All white text below, left aligned */}
-        <Text style={[commonStyles.text, { textAlign: 'left' }]}>
+        {/* All white text below, left aligned with consistent spacing */}
+        <Text style={[commonStyles.text, { textAlign: 'left', marginBottom: 8 }]}>
           Rifle: {entry.rifleName} {entry.rifleCalibber ? `(${entry.rifleCalibber})` : ''}
         </Text>
-        <Text style={[commonStyles.text, { textAlign: 'left' }]}>Date: {entry.date}</Text>
-        <Text style={[commonStyles.text, { textAlign: 'left' }]}>Distance: {entry.distance}</Text>
+        <Text style={[commonStyles.text, { textAlign: 'left', marginBottom: 8 }]}>Date: {entry.date}</Text>
+        <Text style={[commonStyles.text, { textAlign: 'left', marginBottom: 8 }]}>Distance: {entry.distance}</Text>
         
-        <View style={commonStyles.row}>
+        <View style={[commonStyles.row, { marginBottom: 8 }]}>
           <Text style={[commonStyles.text, { flex: 1, textAlign: 'left' }]}>
             Elevation: {entry.elevationMOA} MOA
           </Text>
@@ -373,7 +373,7 @@ export default function ViewEntriesScreen() {
         </View>
 
         {entry.bullGrainWeight && (
-          <Text style={[commonStyles.text, { textAlign: 'left' }]}>Bullet Grain Weight: {entry.bullGrainWeight}</Text>
+          <Text style={[commonStyles.text, { textAlign: 'left', marginBottom: 8 }]}>Bullet Grain Weight: {entry.bullGrainWeight}</Text>
         )}
 
         {entry.score && (
