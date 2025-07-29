@@ -79,7 +79,7 @@ export default function HomeScreen() {
             
             <View style={commonStyles.buttonContainer}>
               <Button
-                text="Load Data"
+                text="Backup/Restore"
                 onPress={navigateToLoadData}
                 style={buttonStyles.accent}
               />
