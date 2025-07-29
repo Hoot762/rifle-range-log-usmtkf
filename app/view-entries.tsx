@@ -351,51 +351,15 @@ export default function ViewEntriesScreen() {
         onPress={() => viewEntryDetails(entry)}
         activeOpacity={0.7}
       >
-        <View style={commonStyles.row}>
-          <View style={{ flex: 1 }}>
-            <Text style={[commonStyles.subtitle, { marginBottom: 4 }]}>
-              {entry.entryName || 'Unnamed Entry'}
-            </Text>
-            <Text style={[commonStyles.text, { textAlign: 'left' }]}>
-              Rifle: {entry.rifleName} {entry.rifleCalibber ? `(${entry.rifleCalibber})` : ''}
-            </Text>
-          </View>
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            <TouchableOpacity
-              onPress={(e) => {
-                e.stopPropagation();
-                editEntry(entry);
-              }}
-              style={{
-                backgroundColor: colors.accent,
-                borderRadius: 6,
-                paddingHorizontal: 12,
-                paddingVertical: 6,
-              }}
-            >
-              <Text style={[commonStyles.text, { fontSize: 12, marginBottom: 0, color: colors.background }]}>
-                Edit
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={(e) => {
-                e.stopPropagation();
-                deleteEntry(entry.id);
-              }}
-              style={{
-                backgroundColor: colors.error,
-                borderRadius: 6,
-                paddingHorizontal: 12,
-                paddingVertical: 6,
-              }}
-            >
-              <Text style={[commonStyles.text, { fontSize: 12, marginBottom: 0 }]}>
-                Delete
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        {/* Entry name at the top, centered */}
+        <Text style={[commonStyles.subtitle, { marginBottom: 16, textAlign: 'center' }]}>
+          {entry.entryName || 'Unnamed Entry'}
+        </Text>
         
+        {/* All white text below, left aligned */}
+        <Text style={[commonStyles.text, { textAlign: 'left' }]}>
+          Rifle: {entry.rifleName} {entry.rifleCalibber ? `(${entry.rifleCalibber})` : ''}
+        </Text>
         <Text style={[commonStyles.text, { textAlign: 'left' }]}>Date: {entry.date}</Text>
         <Text style={[commonStyles.text, { textAlign: 'left' }]}>Distance: {entry.distance}</Text>
         
@@ -403,7 +367,7 @@ export default function ViewEntriesScreen() {
           <Text style={[commonStyles.text, { flex: 1, textAlign: 'left' }]}>
             Elevation: {entry.elevationMOA} MOA
           </Text>
-          <Text style={[commonStyles.text, { flex: 1, textAlign: 'right' }]}>
+          <Text style={[commonStyles.text, { flex: 1, textAlign: 'left' }]}>
             Windage: {entry.windageMOA} MOA
           </Text>
         </View>
@@ -507,6 +471,7 @@ export default function ViewEntriesScreen() {
           </View>
         )}
         
+        {/* Tap to view full details button */}
         <View style={{
           backgroundColor: colors.primary,
           borderRadius: 6,
@@ -521,6 +486,46 @@ export default function ViewEntriesScreen() {
           }]}>
             Tap to view full details
           </Text>
+        </View>
+
+        {/* Edit and Delete buttons moved underneath */}
+        <View style={{ flexDirection: 'row', gap: 8, marginTop: 10, justifyContent: 'center' }}>
+          <TouchableOpacity
+            onPress={(e) => {
+              e.stopPropagation();
+              editEntry(entry);
+            }}
+            style={{
+              backgroundColor: colors.accent,
+              borderRadius: 6,
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+              flex: 1,
+              alignItems: 'center'
+            }}
+          >
+            <Text style={[commonStyles.text, { fontSize: 12, marginBottom: 0, color: colors.background }]}>
+              Edit
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={(e) => {
+              e.stopPropagation();
+              deleteEntry(entry.id);
+            }}
+            style={{
+              backgroundColor: colors.error,
+              borderRadius: 6,
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+              flex: 1,
+              alignItems: 'center'
+            }}
+          >
+            <Text style={[commonStyles.text, { fontSize: 12, marginBottom: 0 }]}>
+              Delete
+            </Text>
+          </TouchableOpacity>
         </View>
       </TouchableOpacity>
     );
