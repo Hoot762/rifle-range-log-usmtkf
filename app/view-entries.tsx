@@ -7,8 +7,6 @@ import Icon from '../components/Icon';
 import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
-import * as DocumentPicker from 'expo-document-picker';
 
 interface RangeEntry {
   id: string;
@@ -27,12 +25,6 @@ interface RangeEntry {
   timestamp: number;
 }
 
-interface ExportData {
-  exportDate: string;
-  totalEntries: number;
-  entries: Array<RangeEntry & { targetImageBase64?: string }>;
-}
-
 type FilterType = 'all' | 'name' | 'distance';
 
 export default function ViewEntriesScreen() {
@@ -43,9 +35,6 @@ export default function ViewEntriesScreen() {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageModalVisible, setImageModalVisible] = useState(false);
-  const [exportModalVisible, setExportModalVisible] = useState(false);
-  const [fileName, setFileName] = useState('range_data_export');
-  const [isExporting, setIsExporting] = useState(false);
   
   // Filter states
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
@@ -187,181 +176,6 @@ export default function ViewEntriesScreen() {
     });
   };
 
-  const convertImageToBase64 = async (imageUri: string): Promise<string | null> => {
-    try {
-      console.log('Converting image to base64:', imageUri);
-      const fileInfo = await FileSystem.getInfoAsync(imageUri);
-      if (!fileInfo.exists) {
-        console.log('Image file does not exist:', imageUri);
-        return null;
-      }
-
-      const base64 = await FileSystem.readAsStringAsync(imageUri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-      
-      if (!base64 || base64.length === 0) {
-        console.log('Failed to read image as base64:', imageUri);
-        return null;
-      }
-
-      console.log(`Successfully converted image to base64, length: ${base64.length}`);
-      return base64;
-    } catch (error) {
-      console.error('Error converting image to base64:', error);
-      return null;
-    }
-  };
-
-  const exportData = async () => {
-    console.log('Opening export options...');
-    setExportModalVisible(true);
-  };
-
-  const performExport = async (exportType: 'share' | 'save') => {
-    console.log(`Performing export with type: ${exportType}`);
-    setIsExporting(true);
-    
-    try {
-      const data = await AsyncStorage.getItem('rangeEntries');
-      if (!data || entries.length === 0) {
-        Alert.alert('No Data', 'No entries found to export');
-        return;
-      }
-
-      console.log('Converting images to base64...');
-      const entriesWithImages: Array<RangeEntry & { targetImageBase64?: string }> = [];
-      let successfulImageConversions = 0;
-      let failedImageConversions = 0;
-      
-      for (const entry of entries) {
-        console.log(`Processing entry: ${entry.entryName || entry.id}`);
-        
-        // Create a clean copy of the entry without the local image URI
-        const entryWithImage: RangeEntry & { targetImageBase64?: string } = {
-          id: entry.id,
-          entryName: entry.entryName,
-          date: entry.date,
-          rifleName: entry.rifleName,
-          rifleCalibber: entry.rifleCalibber,
-          distance: entry.distance,
-          elevationMOA: entry.elevationMOA,
-          windageMOA: entry.windageMOA,
-          notes: entry.notes,
-          timestamp: entry.timestamp,
-          ...(entry.score && { score: entry.score }),
-          ...(entry.shotScores && { shotScores: entry.shotScores }),
-          ...(entry.bullGrainWeight && { bullGrainWeight: entry.bullGrainWeight })
-        };
-        
-        if (entry.targetImageUri) {
-          try {
-            console.log(`Converting image for entry ${entry.id}: ${entry.targetImageUri}`);
-            const fileInfo = await FileSystem.getInfoAsync(entry.targetImageUri);
-            if (fileInfo.exists) {
-              const base64 = await convertImageToBase64(entry.targetImageUri);
-              if (base64) {
-                entryWithImage.targetImageBase64 = base64;
-                successfulImageConversions++;
-                console.log(`Successfully converted image for entry ${entry.id}`);
-              } else {
-                console.log(`Failed to convert image for entry ${entry.id}`);
-                failedImageConversions++;
-              }
-            } else {
-              console.log(`Image file does not exist for entry ${entry.id}: ${entry.targetImageUri}`);
-              failedImageConversions++;
-            }
-          } catch (error) {
-            console.error(`Error processing image for entry ${entry.id}:`, error);
-            failedImageConversions++;
-          }
-        }
-        
-        entriesWithImages.push(entryWithImage);
-      }
-
-      console.log(`Image conversion complete: ${successfulImageConversions} successful, ${failedImageConversions} failed`);
-
-      const exportData: ExportData = {
-        exportDate: new Date().toISOString(),
-        totalEntries: entries.length,
-        entries: entriesWithImages
-      };
-
-      // Validate the export data before stringifying
-      try {
-        const testJson = JSON.stringify(exportData);
-        console.log(`Export JSON size: ${testJson.length} characters`);
-        
-        // Test parsing to ensure it's valid
-        const testParse = JSON.parse(testJson);
-        console.log('JSON validation successful');
-      } catch (jsonError) {
-        console.error('JSON validation failed:', jsonError);
-        Alert.alert('Error', 'Failed to create valid JSON export. Please try again.');
-        return;
-      }
-
-      const jsonString = JSON.stringify(exportData, null, 2);
-      const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9_-]/g, '_');
-      const fullFileName = `${sanitizedFileName}.json`;
-
-      if (exportType === 'share') {
-        const fileUri = FileSystem.documentDirectory + fullFileName;
-        await FileSystem.writeAsStringAsync(fileUri, jsonString);
-        
-        console.log('File created at:', fileUri);
-        
-        if (await Sharing.isAvailableAsync()) {
-          await Sharing.shareAsync(fileUri, {
-            mimeType: 'application/json',
-            dialogTitle: 'Save Range Data Export'
-          });
-          console.log('File shared successfully');
-        } else {
-          Alert.alert('Error', 'Sharing is not available on this device');
-        }
-      } else {
-        const fileUri = FileSystem.documentDirectory + fullFileName;
-        await FileSystem.writeAsStringAsync(fileUri, jsonString);
-        
-        console.log('File created at:', fileUri);
-        
-        if (await Sharing.isAvailableAsync()) {
-          await Sharing.shareAsync(fileUri, {
-            mimeType: 'application/json',
-            dialogTitle: 'Save Range Data Export'
-          });
-          console.log('File save dialog opened');
-        } else {
-          Alert.alert('Error', 'File saving is not available on this device');
-        }
-      }
-
-      setExportModalVisible(false);
-      
-      const imageMessage = successfulImageConversions > 0 
-        ? ` with ${successfulImageConversions} photos`
-        : '';
-      const failureMessage = failedImageConversions > 0 
-        ? ` (${failedImageConversions} photos failed to export)`
-        : '';
-      
-      Alert.alert(
-        'Export Complete',
-        `Successfully exported ${entries.length} entries${imageMessage} to ${fullFileName}${failureMessage}`,
-        [{ text: 'OK' }]
-      );
-
-    } catch (error) {
-      console.error('Error exporting data:', error);
-      Alert.alert('Error', 'Failed to export data. Please try again.');
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
   const openImageModal = (imageUri: string) => {
     setSelectedImage(imageUri);
     setImageModalVisible(true);
@@ -370,10 +184,6 @@ export default function ViewEntriesScreen() {
   const closeImageModal = () => {
     setImageModalVisible(false);
     setSelectedImage(null);
-  };
-
-  const closeExportModal = () => {
-    setExportModalVisible(false);
   };
 
   const goBack = () => {
@@ -775,16 +585,6 @@ export default function ViewEntriesScreen() {
           ))
         )}
 
-        {entries.length > 0 && (
-          <View style={commonStyles.buttonContainer}>
-            <Button
-              text="Export Data"
-              onPress={exportData}
-              style={buttonStyles.accent}
-            />
-          </View>
-        )}
-
         <View style={commonStyles.buttonContainer}>
           <Button
             text="Back"
@@ -793,125 +593,6 @@ export default function ViewEntriesScreen() {
           />
         </View>
       </ScrollView>
-
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={exportModalVisible}
-        onRequestClose={closeExportModal}
-      >
-        <View style={{
-          flex: 1,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: 20
-        }}>
-          <View style={{
-            backgroundColor: colors.background,
-            borderRadius: 12,
-            padding: 20,
-            width: '100%',
-            maxWidth: 400,
-            borderWidth: 2,
-            borderColor: colors.border
-          }}>
-            <View style={{ alignItems: 'center', marginBottom: 20 }}>
-              <Icon name="download" size={40} style={{ marginBottom: 10 }} />
-              <Text style={[commonStyles.title, { fontSize: 20, marginBottom: 10 }]}>
-                Export Data with Photos
-              </Text>
-              <Text style={[commonStyles.text, { textAlign: 'center', color: colors.grey }]}>
-                Export {entries.length} entries including target photos
-              </Text>
-            </View>
-
-            <View style={{ marginBottom: 20 }}>
-              <Text style={[commonStyles.text, { marginBottom: 8 }]}>
-                File Name:
-              </Text>
-              <TextInput
-                style={[commonStyles.input, { marginBottom: 0 }]}
-                value={fileName}
-                onChangeText={setFileName}
-                placeholder="Enter file name"
-                placeholderTextColor={colors.grey}
-                editable={!isExporting}
-              />
-              <Text style={[commonStyles.text, { 
-                fontSize: 12, 
-                color: colors.grey, 
-                marginTop: 4,
-                marginBottom: 0 
-              }]}>
-                .json extension will be added automatically
-              </Text>
-            </View>
-
-            {isExporting && (
-              <View style={{ 
-                backgroundColor: colors.secondary, 
-                borderRadius: 8, 
-                padding: 15, 
-                marginBottom: 20,
-                alignItems: 'center'
-              }}>
-                <Text style={[commonStyles.text, { 
-                  fontSize: 14, 
-                  color: colors.text,
-                  marginBottom: 0
-                }]}>
-                  Converting photos... Please wait
-                </Text>
-              </View>
-            )}
-
-            <View style={{ marginBottom: 20 }}>
-              <Button
-                text={isExporting ? "Processing..." : "Share File"}
-                onPress={() => performExport('share')}
-                style={[buttonStyles.primary, { 
-                  marginBottom: 10,
-                  opacity: isExporting ? 0.6 : 1
-                }]}
-              />
-              <Text style={[commonStyles.text, { 
-                fontSize: 12, 
-                color: colors.grey, 
-                textAlign: 'center',
-                marginBottom: 15
-              }]}>
-                Opens share dialog to save or send the file with photos
-              </Text>
-
-              <Button
-                text={isExporting ? "Processing..." : "Save to Device"}
-                onPress={() => performExport('save')}
-                style={[buttonStyles.accent, {
-                  opacity: isExporting ? 0.6 : 1
-                }]}
-              />
-              <Text style={[commonStyles.text, { 
-                fontSize: 12, 
-                color: colors.grey, 
-                textAlign: 'center',
-                marginTop: 4,
-                marginBottom: 0
-              }]}>
-                Choose where to save the file with photos on your device
-              </Text>
-            </View>
-
-            <Button
-              text="Cancel"
-              onPress={closeExportModal}
-              style={[buttonStyles.secondary, {
-                opacity: isExporting ? 0.6 : 1
-              }]}
-            />
-          </View>
-        </View>
-      </Modal>
 
       <Modal
         animationType="fade"
