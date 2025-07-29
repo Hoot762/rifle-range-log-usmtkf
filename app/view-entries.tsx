@@ -33,16 +33,23 @@ interface ExportData {
   entries: Array<RangeEntry & { targetImageBase64?: string }>;
 }
 
+type FilterType = 'all' | 'name' | 'distance';
+
 export default function ViewEntriesScreen() {
   console.log('ViewEntriesScreen rendered');
 
   const [entries, setEntries] = useState<RangeEntry[]>([]);
+  const [filteredEntries, setFilteredEntries] = useState<RangeEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [exportModalVisible, setExportModalVisible] = useState(false);
   const [fileName, setFileName] = useState('range_data_export');
   const [isExporting, setIsExporting] = useState(false);
+  
+  // Filter states
+  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const [filterValue, setFilterValue] = useState('');
 
   // Use useFocusEffect to reload entries whenever the screen gains focus
   useFocusEffect(
@@ -51,6 +58,11 @@ export default function ViewEntriesScreen() {
       loadEntries();
     }, [])
   );
+
+  // Apply filters whenever entries, activeFilter, or filterValue changes
+  useEffect(() => {
+    applyFilter();
+  }, [entries, activeFilter, filterValue]);
 
   const loadEntries = async () => {
     console.log('Loading entries...');
@@ -71,6 +83,49 @@ export default function ViewEntriesScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const applyFilter = () => {
+    console.log(`Applying filter: ${activeFilter}, value: ${filterValue}`);
+    
+    if (activeFilter === 'all' || !filterValue.trim()) {
+      setFilteredEntries(entries);
+      return;
+    }
+
+    const filtered = entries.filter(entry => {
+      const searchValue = filterValue.toLowerCase().trim();
+      
+      switch (activeFilter) {
+        case 'name':
+          return entry.entryName.toLowerCase().includes(searchValue) ||
+                 entry.rifleName.toLowerCase().includes(searchValue);
+        case 'distance':
+          // Extract numeric value from distance for comparison
+          const entryDistance = entry.distance.replace(/[^\d.]/g, '');
+          return entryDistance.includes(searchValue) || 
+                 entry.distance.toLowerCase().includes(searchValue);
+        default:
+          return true;
+      }
+    });
+
+    console.log(`Filtered ${entries.length} entries to ${filtered.length} entries`);
+    setFilteredEntries(filtered);
+  };
+
+  const setFilter = (filterType: FilterType) => {
+    console.log(`Setting filter to: ${filterType}`);
+    setActiveFilter(filterType);
+    if (filterType === 'all') {
+      setFilterValue('');
+    }
+  };
+
+  const clearFilter = () => {
+    console.log('Clearing filter');
+    setActiveFilter('all');
+    setFilterValue('');
   };
 
   const deleteEntry = async (entryId: string) => {
@@ -527,7 +582,7 @@ export default function ViewEntriesScreen() {
               Delete
             </Text>
           </TouchableOpacity>
-        </View>
+          </View>
       </TouchableOpacity>
     );
   };
@@ -553,14 +608,169 @@ export default function ViewEntriesScreen() {
           </Text>
         </View>
 
-        {entries.length === 0 ? (
+        {/* Filter Section */}
+        <View style={{
+          backgroundColor: colors.secondary,
+          borderRadius: 12,
+          padding: 16,
+          marginBottom: 20,
+          borderWidth: 1,
+          borderColor: colors.border
+        }}>
+          <Text style={[commonStyles.text, { 
+            fontSize: 16, 
+            fontWeight: 'bold', 
+            marginBottom: 12,
+            textAlign: 'center'
+          }]}>
+            Filter Entries
+          </Text>
+          
+          {/* Filter Buttons */}
+          <View style={{ 
+            flexDirection: 'row', 
+            justifyContent: 'space-between', 
+            marginBottom: 12,
+            gap: 8
+          }}>
+            <TouchableOpacity
+              onPress={() => setFilter('all')}
+              style={{
+                backgroundColor: activeFilter === 'all' ? colors.accent : colors.inputBackground,
+                borderRadius: 8,
+                paddingVertical: 8,
+                paddingHorizontal: 12,
+                flex: 1,
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: activeFilter === 'all' ? colors.accent : colors.border
+              }}
+            >
+              <Text style={[commonStyles.text, { 
+                fontSize: 12, 
+                marginBottom: 0,
+                color: activeFilter === 'all' ? colors.background : colors.text,
+                fontWeight: activeFilter === 'all' ? 'bold' : 'normal'
+              }]}>
+                All
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              onPress={() => setFilter('name')}
+              style={{
+                backgroundColor: activeFilter === 'name' ? colors.accent : colors.inputBackground,
+                borderRadius: 8,
+                paddingVertical: 8,
+                paddingHorizontal: 12,
+                flex: 1,
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: activeFilter === 'name' ? colors.accent : colors.border
+              }}
+            >
+              <Text style={[commonStyles.text, { 
+                fontSize: 12, 
+                marginBottom: 0,
+                color: activeFilter === 'name' ? colors.background : colors.text,
+                fontWeight: activeFilter === 'name' ? 'bold' : 'normal'
+              }]}>
+                Name
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              onPress={() => setFilter('distance')}
+              style={{
+                backgroundColor: activeFilter === 'distance' ? colors.accent : colors.inputBackground,
+                borderRadius: 8,
+                paddingVertical: 8,
+                paddingHorizontal: 12,
+                flex: 1,
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: activeFilter === 'distance' ? colors.accent : colors.border
+              }}
+            >
+              <Text style={[commonStyles.text, { 
+                fontSize: 12, 
+                marginBottom: 0,
+                color: activeFilter === 'distance' ? colors.background : colors.text,
+                fontWeight: activeFilter === 'distance' ? 'bold' : 'normal'
+              }]}>
+                Distance
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Search Input - only show when not "all" filter */}
+          {activeFilter !== 'all' && (
+            <View style={{ marginBottom: 12 }}>
+              <TextInput
+                style={[commonStyles.input, { marginBottom: 0 }]}
+                value={filterValue}
+                onChangeText={setFilterValue}
+                placeholder={
+                  activeFilter === 'name' 
+                    ? 'Search by entry name or rifle name...' 
+                    : 'Search by distance (e.g., 600, 800 yards)...'
+                }
+                placeholderTextColor={colors.grey}
+              />
+            </View>
+          )}
+
+          {/* Clear Filter Button */}
+          {(activeFilter !== 'all' || filterValue) && (
+            <TouchableOpacity
+              onPress={clearFilter}
+              style={{
+                backgroundColor: colors.error,
+                borderRadius: 8,
+                paddingVertical: 8,
+                paddingHorizontal: 16,
+                alignItems: 'center',
+                alignSelf: 'center'
+              }}
+            >
+              <Text style={[commonStyles.text, { 
+                fontSize: 12, 
+                marginBottom: 0,
+                color: colors.text,
+                fontWeight: 'bold'
+              }]}>
+                Clear Filter
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Filter Results Info */}
+          {activeFilter !== 'all' && (
+            <Text style={[commonStyles.text, { 
+              fontSize: 12, 
+              color: colors.grey, 
+              textAlign: 'center',
+              marginTop: 8,
+              marginBottom: 0
+            }]}>
+              Showing {filteredEntries.length} of {entries.length} entries
+            </Text>
+          )}
+        </View>
+
+        {filteredEntries.length === 0 ? (
           <View style={commonStyles.card}>
             <Text style={[commonStyles.text, { textAlign: 'center' }]}>
-              No entries found. Add your first range session!
+              {entries.length === 0 
+                ? 'No entries found. Add your first range session!'
+                : activeFilter !== 'all' 
+                  ? 'No entries match your filter criteria.'
+                  : 'No entries found.'
+              }
             </Text>
           </View>
         ) : (
-          entries.map((entry) => (
+          filteredEntries.map((entry) => (
             <EntryCard key={entry.id} entry={entry} />
           ))
         )}
