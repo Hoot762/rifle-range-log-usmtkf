@@ -311,18 +311,16 @@ export default function EntryDetailsScreen() {
             Rifle Information
           </Text>
           
-          <View style={commonStyles.row}>
-            <Text style={[commonStyles.text, { flex: 1, fontWeight: '600' }]}>Rifle Name:</Text>
-            <Text style={[commonStyles.text, { flex: 1, textAlign: 'right' }]}>
-              {entry.rifleName}
+          <View style={{ marginBottom: 10 }}>
+            <Text style={[commonStyles.text, { fontWeight: '600', textAlign: 'left' }]}>
+              Rifle Name: {entry.rifleName}
             </Text>
           </View>
 
           {entry.rifleCalibber && (
-            <View style={commonStyles.row}>
-              <Text style={[commonStyles.text, { flex: 1, fontWeight: '600' }]}>Caliber:</Text>
-              <Text style={[commonStyles.text, { flex: 1, textAlign: 'right' }]}>
-                {entry.rifleCalibber}
+            <View style={{ marginBottom: 10 }}>
+              <Text style={[commonStyles.text, { fontWeight: '600', textAlign: 'left' }]}>
+                Caliber: {entry.rifleCalibber}
               </Text>
             </View>
           )}
@@ -334,25 +332,22 @@ export default function EntryDetailsScreen() {
             Session Information
           </Text>
           
-          <View style={commonStyles.row}>
-            <Text style={[commonStyles.text, { flex: 1, fontWeight: '600' }]}>Date:</Text>
-            <Text style={[commonStyles.text, { flex: 1, textAlign: 'right' }]}>
-              {entry.date}
+          <View style={{ marginBottom: 10 }}>
+            <Text style={[commonStyles.text, { fontWeight: '600', textAlign: 'left' }]}>
+              Date: {entry.date}
             </Text>
           </View>
 
-          <View style={commonStyles.row}>
-            <Text style={[commonStyles.text, { flex: 1, fontWeight: '600' }]}>Distance:</Text>
-            <Text style={[commonStyles.text, { flex: 1, textAlign: 'right' }]}>
-              {entry.distance}
+          <View style={{ marginBottom: 10 }}>
+            <Text style={[commonStyles.text, { fontWeight: '600', textAlign: 'left' }]}>
+              Distance: {entry.distance}
             </Text>
           </View>
 
           {entry.bullGrainWeight && (
-            <View style={commonStyles.row}>
-              <Text style={[commonStyles.text, { flex: 1, fontWeight: '600' }]}>Bullet Grain Weight:</Text>
-              <Text style={[commonStyles.text, { flex: 1, textAlign: 'right' }]}>
-                {entry.bullGrainWeight}
+            <View style={{ marginBottom: 10 }}>
+              <Text style={[commonStyles.text, { fontWeight: '600', textAlign: 'left' }]}>
+                Bullet Grain Weight: {entry.bullGrainWeight}
               </Text>
             </View>
           )}
@@ -364,17 +359,15 @@ export default function EntryDetailsScreen() {
             Scope Settings
           </Text>
           
-          <View style={commonStyles.row}>
-            <Text style={[commonStyles.text, { flex: 1, fontWeight: '600' }]}>Elevation:</Text>
-            <Text style={[commonStyles.text, { flex: 1, textAlign: 'right' }]}>
-              {entry.elevationMOA} MOA
+          <View style={{ marginBottom: 10 }}>
+            <Text style={[commonStyles.text, { fontWeight: '600', textAlign: 'left' }]}>
+              Elevation: {entry.elevationMOA} MOA
             </Text>
           </View>
 
-          <View style={commonStyles.row}>
-            <Text style={[commonStyles.text, { flex: 1, fontWeight: '600' }]}>Windage:</Text>
-            <Text style={[commonStyles.text, { flex: 1, textAlign: 'right' }]}>
-              {entry.windageMOA} MOA
+          <View style={{ marginBottom: 10 }}>
+            <Text style={[commonStyles.text, { fontWeight: '600', textAlign: 'left' }]}>
+              Windage: {entry.windageMOA} MOA
             </Text>
           </View>
         </View>
