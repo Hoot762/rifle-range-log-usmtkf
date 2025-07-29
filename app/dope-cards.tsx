@@ -635,50 +635,20 @@ export default function DopeCardsScreen() {
       ) : (
         dopeCards.map(card => (
           <View key={card.id} style={commonStyles.card}>
-            <View style={commonStyles.row}>
-              <View style={{ flex: 1 }}>
-                <Text style={[commonStyles.subtitle, { marginBottom: 4 }]}>
-                  {card.rifleName}
-                </Text>
-                <Text style={[commonStyles.text, { textAlign: 'left' }]}>
-                  Caliber: {card.caliber}
-                </Text>
-              </View>
-              <View style={{ flexDirection: 'row', gap: 8 }}>
-                <TouchableOpacity
-                  onPress={() => startEditingCard(card)}
-                  style={{
-                    backgroundColor: colors.accent,
-                    borderRadius: 6,
-                    paddingHorizontal: 12,
-                    paddingVertical: 6,
-                  }}
-                >
-                  <Text style={[commonStyles.text, { fontSize: 12, marginBottom: 0, color: colors.background }]}>
-                    Edit
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => confirmDeleteCard(card.id)}
-                  style={{
-                    backgroundColor: colors.error,
-                    borderRadius: 6,
-                    paddingHorizontal: 12,
-                    paddingVertical: 6,
-                  }}
-                >
-                  <Text style={[commonStyles.text, { fontSize: 12, marginBottom: 0 }]}>
-                    Delete
-                  </Text>
-                </TouchableOpacity>
-              </View>
+            <View style={{ alignItems: 'center', marginBottom: 10 }}>
+              <Text style={[commonStyles.subtitle, { marginBottom: 4 }]}>
+                {card.rifleName}
+              </Text>
+              <Text style={[commonStyles.text, { textAlign: 'left' }]}>
+                Caliber: {card.caliber}
+              </Text>
             </View>
 
             <View style={{
               backgroundColor: colors.secondary,
               borderRadius: 8,
               padding: 12,
-              marginTop: 10,
+              marginBottom: 15,
             }}>
               <View style={{
                 flexDirection: 'row',
@@ -748,6 +718,39 @@ export default function DopeCardsScreen() {
                   </Text>
                 </View>
               ))}
+            </View>
+
+            <View style={{ flexDirection: 'row', gap: 8, justifyContent: 'center' }}>
+              <TouchableOpacity
+                onPress={() => startEditingCard(card)}
+                style={{
+                  backgroundColor: colors.accent,
+                  borderRadius: 6,
+                  paddingHorizontal: 16,
+                  paddingVertical: 8,
+                  flex: 1,
+                  alignItems: 'center',
+                }}
+              >
+                <Text style={[commonStyles.text, { fontSize: 14, marginBottom: 0, color: colors.background, fontWeight: '600' }]}>
+                  Edit
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => confirmDeleteCard(card.id)}
+                style={{
+                  backgroundColor: colors.error,
+                  borderRadius: 6,
+                  paddingHorizontal: 16,
+                  paddingVertical: 8,
+                  flex: 1,
+                  alignItems: 'center',
+                }}
+              >
+                <Text style={[commonStyles.text, { fontSize: 14, marginBottom: 0, fontWeight: '600' }]}>
+                  Delete
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         ))
