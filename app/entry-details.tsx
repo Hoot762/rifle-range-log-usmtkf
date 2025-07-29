@@ -209,7 +209,7 @@ export default function EntryDetailsScreen() {
               <Text style={[commonStyles.text, { 
                 fontSize: 12,
                 marginBottom: 2,
-                color: colors.grey
+                color: 'white'
               }]}>
                 Numeric Total
               </Text>
@@ -232,7 +232,7 @@ export default function EntryDetailsScreen() {
               <Text style={[commonStyles.text, { 
                 fontSize: 12,
                 marginBottom: 2,
-                color: colors.grey
+                color: 'white'
               }]}>
                 V-Bull Hits
               </Text>
@@ -255,7 +255,7 @@ export default function EntryDetailsScreen() {
               <Text style={[commonStyles.text, { 
                 fontSize: 12,
                 marginBottom: 2,
-                color: colors.grey
+                color: 'white'
               }]}>
                 Numeric Avg
               </Text>
