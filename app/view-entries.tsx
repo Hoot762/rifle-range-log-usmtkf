@@ -360,6 +360,11 @@ export default function ViewEntriesScreen() {
         <Text style={[commonStyles.text, { textAlign: 'left', marginBottom: 8 }]}>
           Rifle: {entry.rifleName} {entry.rifleCalibber ? `(${entry.rifleCalibber})` : ''}
         </Text>
+
+        {entry.bullGrainWeight && (
+          <Text style={[commonStyles.text, { textAlign: 'left', marginBottom: 8 }]}>Bullet Grain Weight: {entry.bullGrainWeight}</Text>
+        )}
+
         <Text style={[commonStyles.text, { textAlign: 'left', marginBottom: 8 }]}>Date: {entry.date}</Text>
         <Text style={[commonStyles.text, { textAlign: 'left', marginBottom: 8 }]}>Distance: {entry.distance}</Text>
         
@@ -371,10 +376,6 @@ export default function ViewEntriesScreen() {
             Windage: {entry.windageMOA} MOA
           </Text>
         </View>
-
-        {entry.bullGrainWeight && (
-          <Text style={[commonStyles.text, { textAlign: 'left', marginBottom: 8 }]}>Bullet Grain Weight: {entry.bullGrainWeight}</Text>
-        )}
 
         {entry.score && (
           <View style={{

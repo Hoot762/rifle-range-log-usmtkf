@@ -664,6 +664,47 @@ export default function AddEntryScreen() {
             returnKeyType="next"
           />
 
+          <Text style={commonStyles.label}>Bullet Grain Weight</Text>
+          <View style={{ position: 'relative' }}>
+            <TextInput
+              style={commonStyles.input}
+              value={bullGrainWeight}
+              onChangeText={handleBullGrainWeightChange}
+              placeholder="e.g. 168"
+              placeholderTextColor={colors.grey}
+              keyboardType="decimal-pad"
+              returnKeyType="next"
+            />
+            {bullGrainWeight.trim() !== '' && (
+              <View style={{
+                position: 'absolute',
+                right: 15,
+                top: 0,
+                bottom: 0,
+                justifyContent: 'center',
+                pointerEvents: 'none'
+              }}>
+                <Text style={{
+                  color: colors.text,
+                  fontSize: 16,
+                  fontWeight: '500'
+                }}>
+                  gr
+                </Text>
+              </View>
+            )}
+          </View>
+          {bullGrainWeight.trim() !== '' && (
+            <Text style={[commonStyles.text, { 
+              fontSize: 12, 
+              color: colors.grey,
+              marginTop: 5,
+              fontStyle: 'italic'
+            }]}>
+              Will be saved as: {formatBullGrainWeightDisplay()}
+            </Text>
+          )}
+
           <Text style={commonStyles.label}>Distance *</Text>
           <View style={{ position: 'relative' }}>
             <TextInput
@@ -732,47 +773,6 @@ export default function AddEntryScreen() {
               />
             </View>
           </View>
-
-          <Text style={commonStyles.label}>Bullet Grain Weight</Text>
-          <View style={{ position: 'relative' }}>
-            <TextInput
-              style={commonStyles.input}
-              value={bullGrainWeight}
-              onChangeText={handleBullGrainWeightChange}
-              placeholder="e.g. 168"
-              placeholderTextColor={colors.grey}
-              keyboardType="decimal-pad"
-              returnKeyType="next"
-            />
-            {bullGrainWeight.trim() !== '' && (
-              <View style={{
-                position: 'absolute',
-                right: 15,
-                top: 0,
-                bottom: 0,
-                justifyContent: 'center',
-                pointerEvents: 'none'
-              }}>
-                <Text style={{
-                  color: colors.text,
-                  fontSize: 16,
-                  fontWeight: '500'
-                }}>
-                  gr
-                </Text>
-              </View>
-            )}
-          </View>
-          {bullGrainWeight.trim() !== '' && (
-            <Text style={[commonStyles.text, { 
-              fontSize: 12, 
-              color: colors.grey,
-              marginTop: 5,
-              fontStyle: 'italic'
-            }]}>
-              Will be saved as: {formatBullGrainWeightDisplay()}
-            </Text>
-          )}
 
           <Text style={commonStyles.label}>Overall Score (Points)</Text>
           <TextInput

@@ -324,6 +324,14 @@ export default function EntryDetailsScreen() {
               </Text>
             </View>
           )}
+
+          {entry.bullGrainWeight && (
+            <View style={{ marginBottom: 10 }}>
+              <Text style={[commonStyles.text, { fontWeight: '600', textAlign: 'left' }]}>
+                Bullet Grain Weight: {entry.bullGrainWeight}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Basic Information */}
@@ -343,14 +351,6 @@ export default function EntryDetailsScreen() {
               Distance: {entry.distance}
             </Text>
           </View>
-
-          {entry.bullGrainWeight && (
-            <View style={{ marginBottom: 10 }}>
-              <Text style={[commonStyles.text, { fontWeight: '600', textAlign: 'left' }]}>
-                Bullet Grain Weight: {entry.bullGrainWeight}
-              </Text>
-            </View>
-          )}
         </View>
 
         {/* Scope Settings */}
