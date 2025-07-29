@@ -1,4 +1,4 @@
-import { Text, View, SafeAreaView, ScrollView, TextInput, Alert, Image, TouchableOpacity } from 'react-native';
+import { Text, View, SafeAreaView, ScrollView, TextInput, Alert, Image, TouchableOpacity, Modal } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useRef, useEffect } from 'react';
 import Button from '../components/Button';
@@ -27,6 +27,130 @@ interface RangeEntry {
   timestamp: number;
 }
 
+// Shot score dropdown component
+const ShotScoreDropdown = ({ 
+  value, 
+  onValueChange, 
+  shotNumber,
+  onNext 
+}: { 
+  value: string; 
+  onValueChange: (value: string) => void; 
+  shotNumber: number;
+  onNext?: () => void;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const scoreOptions = ['', '0', '1', '2', '3', '4', '5', 'v'];
+
+  const handleSelect = (selectedValue: string) => {
+    console.log(`Shot ${shotNumber} selected: "${selectedValue}"`);
+    onValueChange(selectedValue);
+    setIsOpen(false);
+    
+    // Auto-advance to next shot if a value was selected and onNext is provided
+    if (selectedValue !== '' && onNext) {
+      setTimeout(() => {
+        onNext();
+      }, 100);
+    }
+  };
+
+  const getDisplayValue = () => {
+    if (value === '') return 'Select';
+    return value;
+  };
+
+  const getDisplayColor = () => {
+    if (value === '') return colors.grey;
+    if (value === 'v') return colors.accent;
+    return colors.text;
+  };
+
+  return (
+    <View style={{ position: 'relative', zIndex: isOpen ? 1000 : 1 }}>
+      <TouchableOpacity
+        style={{
+          backgroundColor: colors.inputBackground,
+          borderColor: isOpen ? colors.accent : colors.border,
+          borderWidth: 1,
+          borderRadius: 8,
+          paddingHorizontal: 12,
+          paddingVertical: 12,
+          marginVertical: 4,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          minHeight: 44,
+        }}
+        onPress={() => setIsOpen(!isOpen)}
+        activeOpacity={0.7}
+      >
+        <Text style={{
+          color: getDisplayColor(),
+          fontSize: 16,
+          fontWeight: '600',
+          textAlign: 'center',
+          flex: 1
+        }}>
+          {getDisplayValue()}
+        </Text>
+        <Icon 
+          name={isOpen ? "chevron-up" : "chevron-down"} 
+          size={16} 
+          style={{ color: colors.grey }} 
+        />
+      </TouchableOpacity>
+
+      {isOpen && (
+        <View style={{
+          position: 'absolute',
+          top: '100%',
+          left: 0,
+          right: 0,
+          backgroundColor: colors.cardBackground,
+          borderColor: colors.border,
+          borderWidth: 1,
+          borderRadius: 8,
+          marginTop: 2,
+          maxHeight: 200,
+          zIndex: 1000,
+          elevation: 5,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.25,
+          shadowRadius: 4,
+        }}>
+          <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled>
+            {scoreOptions.map((option, index) => (
+              <TouchableOpacity
+                key={index}
+                style={{
+                  paddingHorizontal: 12,
+                  paddingVertical: 12,
+                  borderBottomWidth: index < scoreOptions.length - 1 ? 1 : 0,
+                  borderBottomColor: colors.border,
+                  backgroundColor: value === option ? colors.accent + '20' : 'transparent',
+                }}
+                onPress={() => handleSelect(option)}
+                activeOpacity={0.7}
+              >
+                <Text style={{
+                  color: option === 'v' ? colors.accent : colors.text,
+                  fontSize: 16,
+                  fontWeight: value === option ? '600' : '400',
+                  textAlign: 'center'
+                }}>
+                  {option === '' ? 'Clear' : option}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+    </View>
+  );
+};
+
 export default function AddEntryScreen() {
   console.log('AddEntryScreen rendered');
 
@@ -50,8 +174,8 @@ export default function AddEntryScreen() {
   const [showShotScores, setShowShotScores] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Create refs for each shot input field
-  const shotInputRefs = useRef<(TextInput | null)[]>(Array(12).fill(null));
+  // Create refs for tracking which dropdown should be focused next
+  const [focusedShotIndex, setFocusedShotIndex] = useState<number | null>(null);
 
   // Load existing entry data if in edit mode
   useEffect(() => {
@@ -143,24 +267,21 @@ export default function AddEntryScreen() {
 
   const updateShotScore = (index: number, value: string) => {
     const cleanValue = value.toLowerCase().trim();
-    if (cleanValue === '' || cleanValue === 'v' || /^\d*\.?\d*$/.test(cleanValue)) {
-      const newScores = [...shotScores];
-      newScores[index] = cleanValue;
-      setShotScores(newScores);
-      console.log(`Updated shot ${index + 1} to "${cleanValue}"`);
-      
-      calculateTotalScore(newScores);
+    const newScores = [...shotScores];
+    newScores[index] = cleanValue;
+    setShotScores(newScores);
+    console.log(`Updated shot ${index + 1} to "${cleanValue}"`);
+    
+    calculateTotalScore(newScores);
+  };
 
-      // Auto-tab to next input field if a value was entered and we're not at the last field
-      if (cleanValue !== '' && index < 11) {
-        const nextInputRef = shotInputRefs.current[index + 1];
-        if (nextInputRef) {
-          console.log(`Auto-tabbing to shot ${index + 2}`);
-          setTimeout(() => {
-            nextInputRef.focus();
-          }, 100); // Small delay to ensure the state update is complete
-        }
-      }
+  const handleShotNext = (currentIndex: number) => {
+    // Auto-advance to next shot
+    if (currentIndex < 11) {
+      console.log(`Auto-advancing from shot ${currentIndex + 1} to shot ${currentIndex + 2}`);
+      setFocusedShotIndex(currentIndex + 1);
+      // Reset focus after a short delay to allow for re-triggering
+      setTimeout(() => setFocusedShotIndex(null), 200);
     }
   };
 
@@ -193,13 +314,10 @@ export default function AddEntryScreen() {
   const addAllShots = () => {
     setShowShotScores(true);
     console.log('Showing shot score inputs');
-    // Focus on the first shot input after showing the inputs
+    // Focus on the first shot after showing the inputs
     setTimeout(() => {
-      const firstInputRef = shotInputRefs.current[0];
-      if (firstInputRef) {
-        firstInputRef.focus();
-        console.log('Auto-focused on first shot input');
-      }
+      setFocusedShotIndex(0);
+      console.log('Auto-focused on first shot dropdown');
     }, 200);
   };
 
@@ -495,31 +613,11 @@ export default function AddEntryScreen() {
                 <Text style={[commonStyles.label, { fontSize: 14, textAlign: 'center' }]}>
                   Shot {index + 1}
                 </Text>
-                <TextInput
-                  ref={(ref) => {
-                    shotInputRefs.current[index] = ref;
-                  }}
-                  style={[commonStyles.input, { 
-                    marginVertical: 4,
-                    textAlign: 'center',
-                    fontSize: 16,
-                    fontWeight: '600'
-                  }]}
+                <ShotScoreDropdown
                   value={shotScores[index]}
-                  onChangeText={(value) => updateShotScore(index, value)}
-                  placeholder="0 or v"
-                  placeholderTextColor={colors.grey}
-                  returnKeyType={index < 11 ? "next" : "done"}
-                  autoCapitalize="none"
-                  onSubmitEditing={() => {
-                    // Handle manual "next" button press
-                    if (index < 11) {
-                      const nextInputRef = shotInputRefs.current[index + 1];
-                      if (nextInputRef) {
-                        nextInputRef.focus();
-                      }
-                    }
-                  }}
+                  onValueChange={(value) => updateShotScore(index, value)}
+                  shotNumber={index + 1}
+                  onNext={index < 11 ? () => handleShotNext(index) : undefined}
                 />
               </View>
             );
@@ -536,7 +634,7 @@ export default function AddEntryScreen() {
           textAlign: 'center',
           color: colors.grey
         }]}>
-          Enter scores for up to 12 individual shots. Use "v" for V-Bull hits (5 points each).
+          Select scores for up to 12 individual shots. Use "v" for V-Bull hits (5 points each).
           {'\n'}Total score will be calculated automatically.
         </Text>
         {rows}
