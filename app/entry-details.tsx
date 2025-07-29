@@ -350,7 +350,7 @@ export default function EntryDetailsScreen() {
 
           {entry.bullGrainWeight && (
             <View style={commonStyles.row}>
-              <Text style={[commonStyles.text, { flex: 1, fontWeight: '600' }]}>Bull Grain Weight:</Text>
+              <Text style={[commonStyles.text, { flex: 1, fontWeight: '600' }]}>Bullet Grain Weight:</Text>
               <Text style={[commonStyles.text, { flex: 1, textAlign: 'right' }]}>
                 {entry.bullGrainWeight}
               </Text>

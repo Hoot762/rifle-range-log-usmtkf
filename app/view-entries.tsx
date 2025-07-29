@@ -373,7 +373,7 @@ export default function ViewEntriesScreen() {
         </View>
 
         {entry.bullGrainWeight && (
-          <Text style={[commonStyles.text, { textAlign: 'left' }]}>Bull Grain Weight: {entry.bullGrainWeight}</Text>
+          <Text style={[commonStyles.text, { textAlign: 'left' }]}>Bullet Grain Weight: {entry.bullGrainWeight}</Text>
         )}
 
         {entry.score && (

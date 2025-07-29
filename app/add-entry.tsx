@@ -241,7 +241,7 @@ export default function AddEntryScreen() {
     }
     
     setBullGrainWeight(numericValue);
-    console.log('Bull grain weight updated to:', numericValue);
+    console.log('Bullet grain weight updated to:', numericValue);
   };
 
   const formatBullGrainWeightDisplay = () => {
@@ -733,7 +733,7 @@ export default function AddEntryScreen() {
             </View>
           </View>
 
-          <Text style={commonStyles.label}>Bull Grain Weight</Text>
+          <Text style={commonStyles.label}>Bullet Grain Weight</Text>
           <View style={{ position: 'relative' }}>
             <TextInput
               style={commonStyles.input}
