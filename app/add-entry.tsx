@@ -70,9 +70,9 @@ const ShotScoreDropdown = ({
     <View style={{ position: 'relative', zIndex: isOpen ? 1000 : 1 }}>
       <TouchableOpacity
         style={{
-          backgroundColor: colors.inputBackground,
+          backgroundColor: colors.primary,
           borderColor: isOpen ? colors.accent : colors.border,
-          borderWidth: 1,
+          borderWidth: 2,
           borderRadius: 8,
           paddingHorizontal: 12,
           paddingVertical: 12,
@@ -81,6 +81,8 @@ const ShotScoreDropdown = ({
           alignItems: 'center',
           justifyContent: 'space-between',
           minHeight: 44,
+          boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.4)',
+          elevation: 3,
         }}
         onPress={() => setIsOpen(!isOpen)}
         activeOpacity={0.7}
@@ -97,7 +99,7 @@ const ShotScoreDropdown = ({
         <Icon 
           name={isOpen ? "chevron-up" : "chevron-down"} 
           size={16} 
-          style={{ color: colors.grey }} 
+          style={{ color: colors.text }} 
         />
       </TouchableOpacity>
 
@@ -107,18 +109,15 @@ const ShotScoreDropdown = ({
           top: '100%',
           left: 0,
           right: 0,
-          backgroundColor: colors.cardBackground,
-          borderColor: colors.border,
-          borderWidth: 1,
+          backgroundColor: colors.background,
+          borderColor: colors.accent,
+          borderWidth: 2,
           borderRadius: 8,
           marginTop: 2,
           maxHeight: 200,
           zIndex: 1000,
-          elevation: 5,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.25,
-          shadowRadius: 4,
+          elevation: 8,
+          boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.6)',
         }}>
           <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled>
             {scoreOptions.map((option, index) => (
@@ -129,7 +128,7 @@ const ShotScoreDropdown = ({
                   paddingVertical: 12,
                   borderBottomWidth: index < scoreOptions.length - 1 ? 1 : 0,
                   borderBottomColor: colors.border,
-                  backgroundColor: value === option ? colors.accent + '20' : 'transparent',
+                  backgroundColor: value === option ? colors.accent + '30' : 'transparent',
                 }}
                 onPress={() => handleSelect(option)}
                 activeOpacity={0.7}
@@ -137,7 +136,7 @@ const ShotScoreDropdown = ({
                 <Text style={{
                   color: option === 'v' ? colors.accent : colors.text,
                   fontSize: 16,
-                  fontWeight: value === option ? '600' : '400',
+                  fontWeight: value === option ? '700' : '500',
                   textAlign: 'center'
                 }}>
                   {option === '' ? 'Clear' : option}
