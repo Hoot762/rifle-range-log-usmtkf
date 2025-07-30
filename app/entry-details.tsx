@@ -32,6 +32,10 @@ export default function EntryDetailsScreen() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageModalVisible, setImageModalVisible] = useState(false);
 
+  useEffect(() => {
+    loadEntry();
+  }, [entryId]);
+
   const loadEntry = async () => {
     console.log('Loading entry details for ID:', entryId);
     try {
@@ -52,10 +56,6 @@ export default function EntryDetailsScreen() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    loadEntry();
-  }, [entryId, loadEntry]);
 
   const openImageModal = (imageUri: string) => {
     setSelectedImage(imageUri);
