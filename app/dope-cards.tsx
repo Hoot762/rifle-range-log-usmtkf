@@ -220,17 +220,6 @@ export default function DopeCardsScreen() {
     handleMOAInputChange(range, field, value);
   };
 
-  const clearField = (range: string, field: 'elevation' | 'windage') => {
-    console.log(`Clearing ${field} field for range ${range}`);
-    setRanges(prev => ({
-      ...prev,
-      [range]: {
-        ...prev[range],
-        [field]: ''
-      }
-    }));
-  };
-
   const exportData = async () => {
     console.log('Opening export options...');
     setExportModalVisible(true);
@@ -581,18 +570,14 @@ export default function DopeCardsScreen() {
               {range} yards
             </Text>
             
-            {/* Elevation Input with Clear Button */}
+            {/* Elevation Input */}
             <View style={{
               flex: 1,
-              flexDirection: 'row',
-              alignItems: 'center',
               marginHorizontal: 5,
             }}>
               <TextInput
                 style={[commonStyles.input, {
-                  flex: 1,
                   marginVertical: 4,
-                  marginRight: 4,
                   textAlign: 'center',
                   padding: 8,
                 }]}
@@ -602,38 +587,16 @@ export default function DopeCardsScreen() {
                 placeholderTextColor={colors.textSecondary}
                 keyboardType="numeric"
               />
-              {ranges[range]?.elevation ? (
-                <TouchableOpacity
-                  onPress={() => clearField(range, 'elevation')}
-                  style={{
-                    backgroundColor: colors.error,
-                    borderRadius: 4,
-                    padding: 4,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: 24,
-                    height: 24,
-                  }}
-                >
-                  <Icon name="close" size={12} style={{ color: colors.background }} />
-                </TouchableOpacity>
-              ) : (
-                <View style={{ width: 24, height: 24 }} />
-              )}
             </View>
 
-            {/* Windage Input with Clear Button */}
+            {/* Windage Input */}
             <View style={{
               flex: 1,
-              flexDirection: 'row',
-              alignItems: 'center',
               marginHorizontal: 5,
             }}>
               <TextInput
                 style={[commonStyles.input, {
-                  flex: 1,
                   marginVertical: 4,
-                  marginRight: 4,
                   textAlign: 'center',
                   padding: 8,
                 }]}
@@ -643,24 +606,6 @@ export default function DopeCardsScreen() {
                 placeholderTextColor={colors.textSecondary}
                 keyboardType="numeric"
               />
-              {ranges[range]?.windage ? (
-                <TouchableOpacity
-                  onPress={() => clearField(range, 'windage')}
-                  style={{
-                    backgroundColor: colors.error,
-                    borderRadius: 4,
-                    padding: 4,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: 24,
-                    height: 24,
-                  }}
-                >
-                  <Icon name="close" size={12} style={{ color: colors.background }} />
-                </TouchableOpacity>
-              ) : (
-                <View style={{ width: 24, height: 24 }} />
-              )}
             </View>
           </View>
         ))}
