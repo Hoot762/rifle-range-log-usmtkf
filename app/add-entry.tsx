@@ -1,4 +1,4 @@
-import { Text, View, SafeAreaView, ScrollView, TextInput, Alert, Image, TouchableOpacity, Modal } from 'react-native';
+import { Text, View, SafeAreaView, ScrollView, TextInput, Alert, Image, TouchableOpacity, Modal, KeyboardAvoidingView } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useRef, useEffect } from 'react';
 import Button from '../components/Button';
@@ -686,314 +686,325 @@ export default function AddEntryScreen() {
 
   return (
     <SafeAreaView style={commonStyles.wrapper}>
-      <ScrollView contentContainerStyle={commonStyles.scrollContent}>
-        <View style={{ alignItems: 'center', marginBottom: 20 }}>
-          <Icon name={isEditMode ? "create" : "add-circle"} size={60} style={{ marginBottom: 10 }} />
-          <Text style={commonStyles.title}>
-            {isEditMode ? 'Edit Range Entry' : 'Add Range Entry'}
-          </Text>
-          {isEditMode && (
-            <Text style={[commonStyles.text, { color: colors.grey, fontSize: 14 }]}>
-              Editing: {entryName || 'Unnamed Entry'}
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <ScrollView 
+          contentContainerStyle={[commonStyles.scrollContent, { paddingBottom: 50 }]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={{ alignItems: 'center', marginBottom: 20 }}>
+            <Icon name={isEditMode ? "create" : "add-circle"} size={60} style={{ marginBottom: 10 }} />
+            <Text style={commonStyles.title}>
+              {isEditMode ? 'Edit Range Entry' : 'Add Range Entry'}
             </Text>
-          )}
-        </View>
-
-        <View style={commonStyles.card}>
-          <Text style={commonStyles.label}>Entry Name *</Text>
-          <TextInput
-            style={commonStyles.input}
-            value={entryName}
-            onChangeText={setEntryName}
-            placeholder="e.g. Morning Practice Session, Competition Round 1"
-            placeholderTextColor={colors.grey}
-            returnKeyType="next"
-          />
-
-          <Text style={commonStyles.label}>Date *</Text>
-          <TouchableOpacity
-            style={[commonStyles.input, {
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              paddingVertical: 15
-            }]}
-            onPress={() => {
-              console.log('Date picker button pressed');
-              setShowDatePicker(true);
-            }}
-          >
-            <Text style={{ color: colors.text, fontSize: 16, fontWeight: '500' }}>
-              {formatDateForDisplay(date)}
-            </Text>
-            <Icon name="calendar" size={20} />
-          </TouchableOpacity>
-          
-          {showDatePicker && (
-            <DateTimePicker
-              testID="dateTimePicker"
-              value={date}
-              mode="date"
-              is24Hour={true}
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={onDateChange}
-              maximumDate={new Date()}
-            />
-          )}
-
-          <Text style={commonStyles.label}>Rifle Name *</Text>
-          <TextInput
-            style={commonStyles.input}
-            value={rifleName}
-            onChangeText={setRifleName}
-            placeholder="Enter rifle name"
-            placeholderTextColor={colors.grey}
-            returnKeyType="next"
-          />
-
-          <Text style={commonStyles.label}>Caliber</Text>
-          <TextInput
-            style={commonStyles.input}
-            value={rifleCalibber}
-            onChangeText={setRifleCalibber}
-            placeholder="e.g. 308 Winchester"
-            placeholderTextColor={colors.grey}
-            returnKeyType="next"
-          />
-
-          <Text style={commonStyles.label}>Bullet Grain Weight</Text>
-          <View style={{ position: 'relative' }}>
-            <TextInput
-              style={commonStyles.input}
-              value={bullGrainWeight}
-              onChangeText={handleBullGrainWeightChange}
-              placeholder="e.g. 168"
-              placeholderTextColor={colors.grey}
-              keyboardType="decimal-pad"
-              returnKeyType="next"
-            />
-            {bullGrainWeight.trim() !== '' && (
-              <View style={{
-                position: 'absolute',
-                right: 15,
-                top: 0,
-                bottom: 0,
-                justifyContent: 'center',
-                pointerEvents: 'none'
-              }}>
-                <Text style={{
-                  color: colors.text,
-                  fontSize: 16,
-                  fontWeight: '500'
-                }}>
-                  gr
-                </Text>
-              </View>
-            )}
-          </View>
-          {bullGrainWeight.trim() !== '' && (
-            <Text style={[commonStyles.text, { 
-              fontSize: 12, 
-              color: colors.grey,
-              marginTop: 5,
-              fontStyle: 'italic'
-            }]}>
-              Will be saved as: {formatBullGrainWeightDisplay()}
-            </Text>
-          )}
-
-          <Text style={commonStyles.label}>Distance *</Text>
-          <View style={{ position: 'relative' }}>
-            <TextInput
-              style={commonStyles.input}
-              value={distance}
-              onChangeText={handleDistanceChange}
-              placeholder="e.g. 100"
-              placeholderTextColor={colors.grey}
-              keyboardType="decimal-pad"
-              returnKeyType="next"
-            />
-            {distance.trim() !== '' && (
-              <View style={{
-                position: 'absolute',
-                right: 15,
-                top: 0,
-                bottom: 0,
-                justifyContent: 'center',
-                pointerEvents: 'none'
-              }}>
-                <Text style={{
-                  color: colors.text,
-                  fontSize: 16,
-                  fontWeight: '500'
-                }}>
-                  yards
-                </Text>
-              </View>
-            )}
-          </View>
-          {distance.trim() !== '' && (
-            <Text style={[commonStyles.text, { 
-              fontSize: 12, 
-              color: colors.grey,
-              marginTop: 5,
-              fontStyle: 'italic'
-            }]}>
-              Will be saved as: {formatDistanceDisplay()}
-            </Text>
-          )}
-
-          <View style={commonStyles.row}>
-            <View style={commonStyles.halfWidth}>
-              <Text style={commonStyles.label}>Elevation MOA *</Text>
-              <TextInput
-                style={commonStyles.input}
-                value={elevationMOA}
-                onChangeText={setElevationMOA}
-                placeholder="0.0"
-                placeholderTextColor={colors.grey}
-                keyboardType="decimal-pad"
-                returnKeyType="next"
-              />
-            </View>
-
-            <View style={commonStyles.halfWidth}>
-              <Text style={commonStyles.label}>Windage MOA *</Text>
-              <TextInput
-                style={commonStyles.input}
-                value={windageMOA}
-                onChangeText={setWindageMOA}
-                placeholder="0.0"
-                placeholderTextColor={colors.grey}
-                keyboardType="decimal-pad"
-                returnKeyType="next"
-              />
-            </View>
-          </View>
-
-          <Text style={commonStyles.label}>Overall Score (Points)</Text>
-          <TextInput
-            style={commonStyles.input}
-            value={score}
-            onChangeText={setScore}
-            placeholder="e.g. 50.1 or auto-calculated from shots"
-            placeholderTextColor={colors.grey}
-            returnKeyType="next"
-          />
-
-          <View style={{ marginTop: 15 }}>
-            <View style={[commonStyles.row, { alignItems: 'flex-end' }]}>
-              <View style={{ flex: 1 }}>
-                <Text style={commonStyles.label}>
-                  Individual Shot Scores (Optional)
-                </Text>
-                <Text style={[commonStyles.text, { 
-                  fontSize: 12, 
-                  color: colors.grey,
-                  textAlign: 'left',
-                  marginBottom: 0
-                }]}>
-                  Track up to 12 individual shot scores. Use "v" for V-ring hits (5 points each).
-                </Text>
-              </View>
-              <Button
-                text={showShotScores ? "Hide" : "Add Shots"}
-                onPress={() => {
-                  if (!showShotScores) {
-                    addAllShots();
-                  } else {
-                    setShowShotScores(false);
-                  }
-                }}
-                style={[buttonStyles.accent, { 
-                  paddingHorizontal: 20,
-                  paddingVertical: 10,
-                  minHeight: 40,
-                  width: 'auto'
-                }]}
-                textStyle={{ fontSize: 14, fontWeight: '600' }}
-              />
-            </View>
-            
-            {renderShotInputs()}
-          </View>
-
-          <Text style={[commonStyles.label, { marginTop: 15 }]}>Target Photo</Text>
-          {targetImageUri ? (
-            <View style={{ marginVertical: 10 }}>
-              <Image 
-                source={{ uri: targetImageUri }} 
-                style={{ 
-                  width: '100%', 
-                  height: 200, 
-                  borderRadius: 8,
-                  marginBottom: 10
-                }} 
-                resizeMode="cover"
-              />
-              <View style={commonStyles.row}>
-                <Button
-                  text="Change Photo"
-                  onPress={pickImage}
-                  style={[buttonStyles.secondary, { flex: 1, marginRight: 5 }]}
-                />
-                <Button
-                  text="Remove"
-                  onPress={removeImage}
-                  style={[buttonStyles.backButton, { flex: 1, marginLeft: 5 }]}
-                />
-              </View>
-            </View>
-          ) : (
-            <TouchableOpacity 
-              style={{
-                backgroundColor: colors.inputBackground,
-                borderColor: colors.border,
-                borderWidth: 1,
-                borderStyle: 'dashed',
-                borderRadius: 8,
-                padding: 40,
-                marginVertical: 10,
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-              onPress={pickImage}
-            >
-              <Icon name="camera" size={40} style={{ marginBottom: 10 }} />
-              <Text style={[commonStyles.text, { color: colors.grey }]}>
-                Tap to add target photo
+            {isEditMode && (
+              <Text style={[commonStyles.text, { color: colors.grey, fontSize: 14 }]}>
+                Editing: {entryName || 'Unnamed Entry'}
               </Text>
+            )}
+          </View>
+
+          <View style={commonStyles.card}>
+            <Text style={commonStyles.label}>Entry Name *</Text>
+            <TextInput
+              style={commonStyles.input}
+              value={entryName}
+              onChangeText={setEntryName}
+              placeholder="e.g. Morning Practice Session, Competition Round 1"
+              placeholderTextColor={colors.grey}
+              returnKeyType="next"
+            />
+
+            <Text style={commonStyles.label}>Date *</Text>
+            <TouchableOpacity
+              style={[commonStyles.input, {
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingVertical: 15
+              }]}
+              onPress={() => {
+                console.log('Date picker button pressed');
+                setShowDatePicker(true);
+              }}
+            >
+              <Text style={{ color: colors.text, fontSize: 16, fontWeight: '500' }}>
+                {formatDateForDisplay(date)}
+              </Text>
+              <Icon name="calendar" size={20} />
             </TouchableOpacity>
-          )}
+            
+            {showDatePicker && (
+              <DateTimePicker
+                testID="dateTimePicker"
+                value={date}
+                mode="date"
+                is24Hour={true}
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={onDateChange}
+                maximumDate={new Date()}
+              />
+            )}
 
-          <Text style={commonStyles.label}>Notes</Text>
-          <TextInput
-            style={[commonStyles.input, { height: 80, textAlignVertical: 'top' }]}
-            value={notes}
-            onChangeText={setNotes}
-            placeholder="Additional notes about this session..."
-            placeholderTextColor={colors.grey}
-            multiline
-            returnKeyType="done"
-          />
-        </View>
+            <Text style={commonStyles.label}>Rifle Name *</Text>
+            <TextInput
+              style={commonStyles.input}
+              value={rifleName}
+              onChangeText={setRifleName}
+              placeholder="Enter rifle name"
+              placeholderTextColor={colors.grey}
+              returnKeyType="next"
+            />
 
-        <View style={commonStyles.buttonContainer}>
-          <Button
-            text={isEditMode ? "Update Entry" : "Save Entry"}
-            onPress={saveEntry}
-            style={buttonStyles.primary}
-          />
-        </View>
+            <Text style={commonStyles.label}>Caliber</Text>
+            <TextInput
+              style={commonStyles.input}
+              value={rifleCalibber}
+              onChangeText={setRifleCalibber}
+              placeholder="e.g. 308 Winchester"
+              placeholderTextColor={colors.grey}
+              returnKeyType="next"
+            />
 
-        <View style={commonStyles.buttonContainer}>
-          <Button
-            text="Back"
-            onPress={goBack}
-            style={buttonStyles.backButton}
-          />
-        </View>
-      </ScrollView>
+            <Text style={commonStyles.label}>Bullet Grain Weight</Text>
+            <View style={{ position: 'relative' }}>
+              <TextInput
+                style={commonStyles.input}
+                value={bullGrainWeight}
+                onChangeText={handleBullGrainWeightChange}
+                placeholder="e.g. 168"
+                placeholderTextColor={colors.grey}
+                keyboardType="decimal-pad"
+                returnKeyType="next"
+              />
+              {bullGrainWeight.trim() !== '' && (
+                <View style={{
+                  position: 'absolute',
+                  right: 15,
+                  top: 0,
+                  bottom: 0,
+                  justifyContent: 'center',
+                  pointerEvents: 'none'
+                }}>
+                  <Text style={{
+                    color: colors.text,
+                    fontSize: 16,
+                    fontWeight: '500'
+                  }}>
+                    gr
+                  </Text>
+                </View>
+              )}
+            </View>
+            {bullGrainWeight.trim() !== '' && (
+              <Text style={[commonStyles.text, { 
+                fontSize: 12, 
+                color: colors.grey,
+                marginTop: 5,
+                fontStyle: 'italic'
+              }]}>
+                Will be saved as: {formatBullGrainWeightDisplay()}
+              </Text>
+            )}
+
+            <Text style={commonStyles.label}>Distance *</Text>
+            <View style={{ position: 'relative' }}>
+              <TextInput
+                style={commonStyles.input}
+                value={distance}
+                onChangeText={handleDistanceChange}
+                placeholder="e.g. 100"
+                placeholderTextColor={colors.grey}
+                keyboardType="decimal-pad"
+                returnKeyType="next"
+              />
+              {distance.trim() !== '' && (
+                <View style={{
+                  position: 'absolute',
+                  right: 15,
+                  top: 0,
+                  bottom: 0,
+                  justifyContent: 'center',
+                  pointerEvents: 'none'
+                }}>
+                  <Text style={{
+                    color: colors.text,
+                    fontSize: 16,
+                    fontWeight: '500'
+                  }}>
+                    yards
+                  </Text>
+                </View>
+              )}
+            </View>
+            {distance.trim() !== '' && (
+              <Text style={[commonStyles.text, { 
+                fontSize: 12, 
+                color: colors.grey,
+                marginTop: 5,
+                fontStyle: 'italic'
+              }]}>
+                Will be saved as: {formatDistanceDisplay()}
+              </Text>
+            )}
+
+            <View style={commonStyles.row}>
+              <View style={commonStyles.halfWidth}>
+                <Text style={commonStyles.label}>Elevation MOA *</Text>
+                <TextInput
+                  style={commonStyles.input}
+                  value={elevationMOA}
+                  onChangeText={setElevationMOA}
+                  placeholder="0.0"
+                  placeholderTextColor={colors.grey}
+                  keyboardType="decimal-pad"
+                  returnKeyType="next"
+                />
+              </View>
+
+              <View style={commonStyles.halfWidth}>
+                <Text style={commonStyles.label}>Windage MOA *</Text>
+                <TextInput
+                  style={commonStyles.input}
+                  value={windageMOA}
+                  onChangeText={setWindageMOA}
+                  placeholder="0.0"
+                  placeholderTextColor={colors.grey}
+                  keyboardType="decimal-pad"
+                  returnKeyType="next"
+                />
+              </View>
+            </View>
+
+            <Text style={commonStyles.label}>Overall Score (Points)</Text>
+            <TextInput
+              style={commonStyles.input}
+              value={score}
+              onChangeText={setScore}
+              placeholder="e.g. 50.1 or auto-calculated from shots"
+              placeholderTextColor={colors.grey}
+              returnKeyType="next"
+            />
+
+            <View style={{ marginTop: 15 }}>
+              <View style={[commonStyles.row, { alignItems: 'flex-end' }]}>
+                <View style={{ flex: 1 }}>
+                  <Text style={commonStyles.label}>
+                    Individual Shot Scores (Optional)
+                  </Text>
+                  <Text style={[commonStyles.text, { 
+                    fontSize: 12, 
+                    color: colors.grey,
+                    textAlign: 'left',
+                    marginBottom: 0
+                  }]}>
+                    Track up to 12 individual shot scores. Use "v" for V-ring hits (5 points each).
+                  </Text>
+                </View>
+                <Button
+                  text={showShotScores ? "Hide" : "Add Shots"}
+                  onPress={() => {
+                    if (!showShotScores) {
+                      addAllShots();
+                    } else {
+                      setShowShotScores(false);
+                    }
+                  }}
+                  style={[buttonStyles.accent, { 
+                    paddingHorizontal: 20,
+                    paddingVertical: 10,
+                    minHeight: 40,
+                    width: 'auto'
+                  }]}
+                  textStyle={{ fontSize: 14, fontWeight: '600' }}
+                />
+              </View>
+              
+              {renderShotInputs()}
+            </View>
+
+            <Text style={[commonStyles.label, { marginTop: 15 }]}>Target Photo</Text>
+            {targetImageUri ? (
+              <View style={{ marginVertical: 10 }}>
+                <Image 
+                  source={{ uri: targetImageUri }} 
+                  style={{ 
+                    width: '100%', 
+                    height: 200, 
+                    borderRadius: 8,
+                    marginBottom: 10
+                  }} 
+                  resizeMode="cover"
+                />
+                <View style={commonStyles.row}>
+                  <Button
+                    text="Change Photo"
+                    onPress={pickImage}
+                    style={[buttonStyles.secondary, { flex: 1, marginRight: 5 }]}
+                  />
+                  <Button
+                    text="Remove"
+                    onPress={removeImage}
+                    style={[buttonStyles.backButton, { flex: 1, marginLeft: 5 }]}
+                  />
+                </View>
+              </View>
+            ) : (
+              <TouchableOpacity 
+                style={{
+                  backgroundColor: colors.inputBackground,
+                  borderColor: colors.border,
+                  borderWidth: 1,
+                  borderStyle: 'dashed',
+                  borderRadius: 8,
+                  padding: 40,
+                  marginVertical: 10,
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                onPress={pickImage}
+              >
+                <Icon name="camera" size={40} style={{ marginBottom: 10 }} />
+                <Text style={[commonStyles.text, { color: colors.grey }]}>
+                  Tap to add target photo
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            <Text style={commonStyles.label}>Notes</Text>
+            <TextInput
+              style={[commonStyles.input, { height: 80, textAlignVertical: 'top' }]}
+              value={notes}
+              onChangeText={setNotes}
+              placeholder="Additional notes about this session..."
+              placeholderTextColor={colors.grey}
+              multiline
+              returnKeyType="done"
+              blurOnSubmit={true}
+            />
+          </View>
+
+          <View style={commonStyles.buttonContainer}>
+            <Button
+              text={isEditMode ? "Update Entry" : "Save Entry"}
+              onPress={saveEntry}
+              style={buttonStyles.primary}
+            />
+          </View>
+
+          <View style={commonStyles.buttonContainer}>
+            <Button
+              text="Back"
+              onPress={goBack}
+              style={buttonStyles.backButton}
+            />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
