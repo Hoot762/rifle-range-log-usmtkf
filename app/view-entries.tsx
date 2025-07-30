@@ -40,19 +40,6 @@ export default function ViewEntriesScreen() {
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [filterValue, setFilterValue] = useState('');
 
-  // Use useFocusEffect to reload entries whenever the screen gains focus
-  useFocusEffect(
-    useCallback(() => {
-      console.log('Screen focused, reloading entries...');
-      loadEntries();
-    }, [])
-  );
-
-  // Apply filters whenever entries, activeFilter, or filterValue changes
-  useEffect(() => {
-    applyFilter();
-  }, [entries, activeFilter, filterValue]);
-
   const loadEntries = async () => {
     console.log('Loading entries...');
     try {
@@ -74,7 +61,7 @@ export default function ViewEntriesScreen() {
     }
   };
 
-  const applyFilter = () => {
+  const applyFilter = useCallback(() => {
     console.log(`Applying filter: ${activeFilter}, value: ${filterValue}`);
     
     if (activeFilter === 'all' || !filterValue.trim()) {
@@ -101,7 +88,20 @@ export default function ViewEntriesScreen() {
 
     console.log(`Filtered ${entries.length} entries to ${filtered.length} entries`);
     setFilteredEntries(filtered);
-  };
+  }, [entries, activeFilter, filterValue]);
+
+  // Use useFocusEffect to reload entries whenever the screen gains focus
+  useFocusEffect(
+    useCallback(() => {
+      console.log('Screen focused, reloading entries...');
+      loadEntries();
+    }, [])
+  );
+
+  // Apply filters whenever entries, activeFilter, or filterValue changes
+  useEffect(() => {
+    applyFilter();
+  }, [entries, activeFilter, filterValue, applyFilter]);
 
   const setFilter = (filterType: FilterType) => {
     console.log(`Setting filter to: ${filterType}`);

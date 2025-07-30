@@ -176,13 +176,6 @@ export default function AddEntryScreen() {
   // Create refs for tracking which dropdown should be focused next
   const [focusedShotIndex, setFocusedShotIndex] = useState<number | null>(null);
 
-  // Load existing entry data if in edit mode
-  useEffect(() => {
-    if (isEditMode && editEntryId) {
-      loadEntryForEdit();
-    }
-  }, [isEditMode, editEntryId]);
-
   const loadEntryForEdit = async () => {
     console.log('Loading entry for edit, ID:', editEntryId);
     setLoading(true);
@@ -248,6 +241,13 @@ export default function AddEntryScreen() {
       setLoading(false);
     }
   };
+
+  // Load existing entry data if in edit mode
+  useEffect(() => {
+    if (isEditMode && editEntryId) {
+      loadEntryForEdit();
+    }
+  }, [isEditMode, editEntryId, loadEntryForEdit]);
 
   const onDateChange = (event: any, selectedDate?: Date) => {
     console.log('Date picker event:', event.type, selectedDate);
