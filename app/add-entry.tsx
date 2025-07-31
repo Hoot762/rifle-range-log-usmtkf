@@ -1,3 +1,4 @@
+
 import { Text, View, SafeAreaView, ScrollView, TextInput, Alert, Image, TouchableOpacity, Modal, KeyboardAvoidingView } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useRef, useEffect } from 'react';
@@ -891,20 +892,11 @@ export default function AddEntryScreen() {
             />
 
             <View style={{ marginTop: 15 }}>
-              <View style={[commonStyles.row, { alignItems: 'flex-end' }]}>
-                <View style={{ flex: 1 }}>
-                  <Text style={commonStyles.label}>
-                    Individual Shot Scores (Optional)
-                  </Text>
-                  <Text style={[commonStyles.text, { 
-                    fontSize: 12, 
-                    color: colors.grey,
-                    textAlign: 'left',
-                    marginBottom: 0
-                  }]}>
-                    Track up to 12 individual shot scores. Use "v" for V-ring hits (5 points each).
-                  </Text>
-                </View>
+              <Text style={commonStyles.label}>
+                Individual Shot Scores (Optional)
+              </Text>
+              
+              <View style={{ alignItems: 'center', marginTop: 10 }}>
                 <Button
                   text={showShotScores ? "Hide" : "Add Shots"}
                   onPress={() => {
@@ -915,12 +907,12 @@ export default function AddEntryScreen() {
                     }
                   }}
                   style={[buttonStyles.accent, { 
-                    paddingHorizontal: 20,
-                    paddingVertical: 10,
-                    minHeight: 40,
+                    paddingHorizontal: 30,
+                    paddingVertical: 12,
+                    minHeight: 44,
                     width: 'auto'
                   }]}
-                  textStyle={{ fontSize: 14, fontWeight: '600' }}
+                  textStyle={{ fontSize: 16, fontWeight: '600' }}
                 />
               </View>
               
