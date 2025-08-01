@@ -1,3 +1,4 @@
+
 import { Text, View, SafeAreaView, Image, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
@@ -40,7 +41,7 @@ export default function HomeScreen() {
           {/* Target image in circular container */}
           <View style={styles.targetImageContainer}>
             <Image 
-              source={require('../assets/images/0c6f758e-3623-49b9-8253-850b43db8407.png')}
+              source={require('../assets/images/mainTarget.png')}
               style={styles.targetImage}
               resizeMode="cover"
             />

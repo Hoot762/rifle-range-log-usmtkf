@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Natively",
-    "slug": "Natively",
+    "name": "rifle-range-log-usmtkf",
+    "slug": "rifle-range-log-usmtkf",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/natively-dark.png",
@@ -24,7 +24,7 @@
         "foregroundImage": "./assets/images/natively-dark.png",
         "backgroundColor": "#000000"
       },
-      "package": "com.anonymous.Natively"
+      "package": "com.conrad.rangeloggerapp"
     },
     "web": {
       "favicon": "./assets/images/final_quest_240x240.png",
