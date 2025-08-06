@@ -1,3 +1,4 @@
+
 import { Text, View, SafeAreaView, ScrollView, Alert, Image, TouchableOpacity, Modal, TextInput } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect, useCallback } from 'react';
@@ -44,7 +45,9 @@ export default function ViewEntriesScreen() {
   useFocusEffect(
     useCallback(() => {
       console.log('Screen focused, reloading entries...');
-      loadEntries();
+      loadEntries().catch(error => {
+        console.error('Error in loadEntries useFocusEffect:', error);
+      });
     }, [])
   );
 

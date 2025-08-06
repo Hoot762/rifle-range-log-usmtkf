@@ -1,3 +1,4 @@
+
 // Global error logging for runtime errors
 
 import { Platform } from "react-native";
@@ -114,17 +115,47 @@ export const setupErrorLogging = () => {
       sendErrorToParent('error', 'JavaScript Runtime Error', errorData);
       return false; // Don't prevent default error handling
     };
-    // check if platform is web
+    
+    // Check if platform is web
     if (Platform.OS === 'web') {
-      // Capture unhandled promise rejections
+      // Capture unhandled promise rejections with better error handling
       window.addEventListener('unhandledrejection', (event) => {
-          const errorData = {
-          reason: event.reason,
-          timestamp: new Date().toISOString()
-        };
+        try {
+          let reason = event.reason;
+          let reasonString = 'Unknown error';
+          
+          // Handle different types of rejection reasons
+          if (reason instanceof Error) {
+            reasonString = reason.message;
+            if (reason.stack) {
+              reasonString += '\n' + reason.stack;
+            }
+          } else if (typeof reason === 'string') {
+            reasonString = reason;
+          } else if (reason && typeof reason === 'object') {
+            try {
+              reasonString = JSON.stringify(reason);
+            } catch (jsonError) {
+              reasonString = String(reason);
+            }
+          } else {
+            reasonString = String(reason);
+          }
 
-        console.error('🚨 UNHANDLED PROMISE REJECTION:', errorData);
-        sendErrorToParent('error', 'Unhandled Promise Rejection', errorData);
+          const errorData = {
+            reason: reasonString,
+            timestamp: new Date().toISOString(),
+            type: 'unhandledrejection'
+          };
+
+          console.error('🚨 UNHANDLED PROMISE REJECTION:', errorData);
+          sendErrorToParent('error', 'Unhandled Promise Rejection', errorData);
+          
+          // Prevent the default unhandled rejection behavior
+          event.preventDefault();
+        } catch (handlerError) {
+          console.error('Error in unhandledrejection handler:', handlerError);
+        }
       });
     }
   }

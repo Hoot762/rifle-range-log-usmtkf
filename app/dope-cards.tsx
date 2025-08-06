@@ -1,3 +1,4 @@
+
 import { Text, View, SafeAreaView, ScrollView, TextInput, Alert, TouchableOpacity, Modal } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
@@ -54,7 +55,9 @@ export default function DopeCardsScreen() {
 
   useEffect(() => {
     console.log('DopeCardsScreen useEffect running');
-    loadDopeCards();
+    loadDopeCards().catch(error => {
+      console.error('Error in loadDopeCards useEffect:', error);
+    });
     initializeRanges();
   }, []);
 
@@ -137,19 +140,24 @@ export default function DopeCardsScreen() {
       timestamp: Date.now()
     };
 
-    let updatedCards: DOPECard[];
-    if (editingCard) {
-      updatedCards = dopeCards.map(card => card.id === editingCard.id ? newCard : card);
-      console.log('Updated existing DOPE card');
-    } else {
-      updatedCards = [...dopeCards, newCard];
-      console.log('Added new DOPE card');
-    }
+    try {
+      let updatedCards: DOPECard[];
+      if (editingCard) {
+        updatedCards = dopeCards.map(card => card.id === editingCard.id ? newCard : card);
+        console.log('Updated existing DOPE card');
+      } else {
+        updatedCards = [...dopeCards, newCard];
+        console.log('Added new DOPE card');
+      }
 
-    setDopeCards(updatedCards);
-    await saveDopeCards(updatedCards);
-    cancelEditing();
-    Alert.alert('Success', `DOPE card ${editingCard ? 'updated' : 'saved'} successfully`);
+      setDopeCards(updatedCards);
+      await saveDopeCards(updatedCards);
+      cancelEditing();
+      Alert.alert('Success', `DOPE card ${editingCard ? 'updated' : 'saved'} successfully`);
+    } catch (error) {
+      console.error('Error saving DOPE card:', error);
+      Alert.alert('Error', 'Failed to save DOPE card. Please try again.');
+    }
   };
 
   const confirmDeleteCard = (cardId: string) => {
@@ -159,11 +167,16 @@ export default function DopeCardsScreen() {
 
   const deleteCard = async (cardId: string) => {
     console.log('Deleting DOPE card:', cardId);
-    const updatedCards = dopeCards.filter(card => card.id !== cardId);
-    setDopeCards(updatedCards);
-    await saveDopeCards(updatedCards);
-    setShowDeleteConfirm(null);
-    Alert.alert('Success', 'DOPE card deleted successfully');
+    try {
+      const updatedCards = dopeCards.filter(card => card.id !== cardId);
+      setDopeCards(updatedCards);
+      await saveDopeCards(updatedCards);
+      setShowDeleteConfirm(null);
+      Alert.alert('Success', 'DOPE card deleted successfully');
+    } catch (error) {
+      console.error('Error deleting DOPE card:', error);
+      Alert.alert('Error', 'Failed to delete DOPE card. Please try again.');
+    }
   };
 
   // Helper function to extract numeric value from MOA string

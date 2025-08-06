@@ -181,7 +181,9 @@ export default function AddEntryScreen() {
   // Load existing entry data if in edit mode
   useEffect(() => {
     if (isEditMode && editEntryId) {
-      loadEntryForEdit();
+      loadEntryForEdit().catch(error => {
+        console.error('Error in loadEntryForEdit useEffect:', error);
+      });
     }
   }, [isEditMode, editEntryId]);
 
@@ -438,100 +440,115 @@ export default function AddEntryScreen() {
   const pickImage = async () => {
     console.log('Opening image picker...');
     
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
-    if (permissionResult.granted === false) {
-      Alert.alert('Permission Required', 'Permission to access camera roll is required!');
-      return;
-    }
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (permissionResult.granted === false) {
+        Alert.alert('Permission Required', 'Permission to access camera roll is required!');
+        return;
+      }
 
-    Alert.alert(
-      'Select Image',
-      'Choose how you want to add a target photo',
-      [
-        { text: 'Camera', onPress: () => openCamera() },
-        { text: 'Gallery', onPress: () => openGallery() },
-        { text: 'Cancel', style: 'cancel' }
-      ]
-    );
+      Alert.alert(
+        'Select Image',
+        'Choose how you want to add a target photo',
+        [
+          { text: 'Camera', onPress: () => openCamera().catch(error => console.error('Error opening camera:', error)) },
+          { text: 'Gallery', onPress: () => openGallery().catch(error => console.error('Error opening gallery:', error)) },
+          { text: 'Cancel', style: 'cancel' }
+        ]
+      );
+    } catch (error) {
+      console.error('Error requesting media library permissions:', error);
+      Alert.alert('Error', 'Failed to request permissions. Please try again.');
+    }
   };
 
   const openCamera = async () => {
     console.log('Opening camera...');
     
-    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-    
-    if (permissionResult.granted === false) {
-      Alert.alert('Permission Required', 'Permission to access camera is required!');
-      return;
-    }
-
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 0.7,
-    });
-
-    if (!result.canceled && result.assets[0]) {
-      try {
-        const savedUri = await saveImageToAppDirectory(result.assets[0].uri);
-        
-        // If editing and there was a previous image, delete it
-        if (isEditMode && targetImageUri && targetImageUri !== savedUri) {
-          try {
-            const fileInfo = await FileSystem.getInfoAsync(targetImageUri);
-            if (fileInfo.exists) {
-              await FileSystem.deleteAsync(targetImageUri);
-              console.log('Deleted old image file:', targetImageUri);
-            }
-          } catch (error) {
-            console.error('Error deleting old image file:', error);
-          }
-        }
-        
-        setTargetImageUri(savedUri);
-        console.log('Image captured and saved:', savedUri);
-      } catch (error) {
-        console.error('Error saving captured image:', error);
-        Alert.alert('Error', 'Failed to save image. Please try again.');
+    try {
+      const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+      
+      if (permissionResult.granted === false) {
+        Alert.alert('Permission Required', 'Permission to access camera is required!');
+        return;
       }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.7,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        try {
+          const savedUri = await saveImageToAppDirectory(result.assets[0].uri);
+          
+          // If editing and there was a previous image, delete it
+          if (isEditMode && targetImageUri && targetImageUri !== savedUri) {
+            try {
+              const fileInfo = await FileSystem.getInfoAsync(targetImageUri);
+              if (fileInfo.exists) {
+                await FileSystem.deleteAsync(targetImageUri);
+                console.log('Deleted old image file:', targetImageUri);
+              }
+            } catch (error) {
+              console.error('Error deleting old image file:', error);
+            }
+          }
+          
+          setTargetImageUri(savedUri);
+          console.log('Image captured and saved:', savedUri);
+        } catch (error) {
+          console.error('Error saving captured image:', error);
+          Alert.alert('Error', 'Failed to save image. Please try again.');
+        }
+      }
+    } catch (error) {
+      console.error('Error in openCamera:', error);
+      Alert.alert('Error', 'Failed to open camera. Please try again.');
     }
   };
 
   const openGallery = async () => {
     console.log('Opening gallery...');
     
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 0.7,
-    });
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.7,
+      });
 
-    if (!result.canceled && result.assets[0]) {
-      try {
-        const savedUri = await saveImageToAppDirectory(result.assets[0].uri);
-        
-        // If editing and there was a previous image, delete it
-        if (isEditMode && targetImageUri && targetImageUri !== savedUri) {
-          try {
-            const fileInfo = await FileSystem.getInfoAsync(targetImageUri);
-            if (fileInfo.exists) {
-              await FileSystem.deleteAsync(targetImageUri);
-              console.log('Deleted old image file:', targetImageUri);
+      if (!result.canceled && result.assets[0]) {
+        try {
+          const savedUri = await saveImageToAppDirectory(result.assets[0].uri);
+          
+          // If editing and there was a previous image, delete it
+          if (isEditMode && targetImageUri && targetImageUri !== savedUri) {
+            try {
+              const fileInfo = await FileSystem.getInfoAsync(targetImageUri);
+              if (fileInfo.exists) {
+                await FileSystem.deleteAsync(targetImageUri);
+                console.log('Deleted old image file:', targetImageUri);
+              }
+            } catch (error) {
+              console.error('Error deleting old image file:', error);
             }
-          } catch (error) {
-            console.error('Error deleting old image file:', error);
           }
+          
+          setTargetImageUri(savedUri);
+          console.log('Image selected and saved:', savedUri);
+        } catch (error) {
+          console.error('Error saving selected image:', error);
+          Alert.alert('Error', 'Failed to save image. Please try again.');
         }
-        
-        setTargetImageUri(savedUri);
-        console.log('Image selected and saved:', savedUri);
-      } catch (error) {
-        console.error('Error saving selected image:', error);
-        Alert.alert('Error', 'Failed to save image. Please try again.');
       }
+    } catch (error) {
+      console.error('Error in openGallery:', error);
+      Alert.alert('Error', 'Failed to open gallery. Please try again.');
     }
   };
 

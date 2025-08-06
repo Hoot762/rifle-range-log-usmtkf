@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import Icon from '../components/Icon';
 import { Text, View, SafeAreaView, ScrollView, Alert, Modal, TextInput } from 'react-native';
