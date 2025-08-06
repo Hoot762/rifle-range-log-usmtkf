@@ -23,6 +23,7 @@ interface RangeEntry {
   shotScores?: string[];
   bullGrainWeight?: string;
   targetImageUri?: string;
+  selectedClass?: string;
   timestamp: number;
 }
 
@@ -235,6 +236,11 @@ export default function ViewEntriesScreen() {
 
         <Text style={[commonStyles.text, { textAlign: 'left', marginBottom: 8 }]}>Date: {entry.date}</Text>
         <Text style={[commonStyles.text, { textAlign: 'left', marginBottom: 8 }]}>Distance: {entry.distance}</Text>
+        
+        {/* Display the selected class */}
+        <Text style={[commonStyles.text, { textAlign: 'left', marginBottom: 8 }]}>
+          Class: {entry.selectedClass || 'TR'}
+        </Text>
         
         <View style={[commonStyles.row, { marginBottom: 8 }]}>
           <Text style={[commonStyles.text, { flex: 1, textAlign: 'left' }]}>
