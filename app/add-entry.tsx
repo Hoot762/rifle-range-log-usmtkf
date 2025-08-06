@@ -173,7 +173,7 @@ export default function AddEntryScreen() {
   const [targetImageUri, setTargetImageUri] = useState<string | null>(null);
   const [showShotScores, setShowShotScores] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [markersIncluded, setMarkersIncluded] = useState(true); // New state for marker inclusion
+  const [markersIncluded, setMarkersIncluded] = useState(true); // State for marker inclusion
 
   // Create refs for tracking which dropdown should be focused next
   const [focusedShotIndex, setFocusedShotIndex] = useState<number | null>(null);
@@ -273,7 +273,7 @@ export default function AddEntryScreen() {
     setShotScores(newScores);
     console.log(`Updated shot ${index + 1} to "${cleanValue}"`);
     
-    calculateTotalScore(newScores);
+    calculateTotalScore(newScores, markersIncluded);
   };
 
   const handleShotNext = (currentIndex: number) => {
@@ -286,25 +286,34 @@ export default function AddEntryScreen() {
     }
   };
 
-  const calculateTotalScore = (scores: string[]) => {
+  const calculateTotalScore = (scores: string[], includeMarkers: boolean = markersIncluded) => {
     const validScores = scores.filter(score => score.trim() !== '');
-    if (validScores.length === 0) return;
+    if (validScores.length === 0) {
+      setScore('');
+      return;
+    }
 
     let numericTotal = 0;
     let vCount = 0;
 
-    // Determine which shots to include based on markersIncluded state
-    const scoresToCalculate = markersIncluded ? validScores : validScores.slice(2);
+    // Determine which shots to include based on includeMarkers parameter
+    const scoresToCalculate = includeMarkers ? validScores : validScores.slice(2);
 
-    scoresToCalculate.forEach(score => {
+    console.log(`Calculating score with markers ${includeMarkers ? 'included' : 'excluded'}`);
+    console.log('Valid scores:', validScores);
+    console.log('Scores to calculate:', scoresToCalculate);
+
+    scoresToCalculate.forEach((score, index) => {
       const cleanScore = score.trim().toLowerCase();
       if (cleanScore === 'v') {
         numericTotal += 5;
         vCount++;
+        console.log(`Shot ${includeMarkers ? index + 1 : index + 3}: v (5 points + v-count)`);
       } else {
         const numValue = parseFloat(cleanScore);
         if (!isNaN(numValue)) {
           numericTotal += numValue;
+          console.log(`Shot ${includeMarkers ? index + 1 : index + 3}: ${numValue} points`);
         }
       }
     });
@@ -313,17 +322,27 @@ export default function AddEntryScreen() {
     const totalScore = numericTotal + decimalPart;
     setScore(totalScore.toString());
     
-    const includedShots = markersIncluded ? 'all shots' : 'shots 3-12 (markers excluded)';
-    console.log(`Calculated total score: ${totalScore} (${numericTotal} points + ${vCount} v's as 0.${vCount}) from ${includedShots}`);
+    const includedShots = includeMarkers ? 'all shots' : 'shots 3-12 (markers excluded)';
+    console.log(`Final calculated score: ${totalScore} (${numericTotal} points + ${vCount} v's as 0.${vCount}) from ${includedShots}`);
   };
 
   const toggleMarkers = () => {
+    console.log(`Toggle markers button clicked. Current state: markers ${markersIncluded ? 'included' : 'excluded'}`);
+    
     const newMarkersIncluded = !markersIncluded;
     setMarkersIncluded(newMarkersIncluded);
-    console.log(`Markers ${newMarkersIncluded ? 'included' : 'excluded'} from score calculation`);
+    
+    console.log(`Markers now ${newMarkersIncluded ? 'included' : 'excluded'} in score calculation`);
     
     // Recalculate score with new marker status
-    calculateTotalScore(shotScores);
+    calculateTotalScore(shotScores, newMarkersIncluded);
+    
+    // Log the action for debugging
+    if (newMarkersIncluded) {
+      console.log('Action: Added Shot 1 and Shot 2 back to score calculation');
+    } else {
+      console.log('Action: Removed Shot 1 and Shot 2 from score calculation');
+    }
   };
 
   const addAllShots = () => {
