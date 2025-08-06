@@ -21,6 +21,7 @@ interface RangeEntry {
   shotScores?: string[]; // Changed to string array to handle "v" entries
   bullGrainWeight?: string;
   targetImageUri?: string;
+  selectedClass?: string; // Added selectedClass property
   timestamp: number;
 }
 
@@ -350,6 +351,12 @@ export default function EntryDetailsScreen() {
           <View style={{ marginBottom: 10 }}>
             <Text style={[commonStyles.text, { fontWeight: '600', textAlign: 'left' }]}>
               Distance: {entry.distance}
+            </Text>
+          </View>
+
+          <View style={{ marginBottom: 10 }}>
+            <Text style={[commonStyles.text, { fontWeight: '600', textAlign: 'left' }]}>
+              Class: {entry.selectedClass || 'TR'}
             </Text>
           </View>
         </View>
