@@ -9,8 +9,8 @@ export const colors = {
   surface: '#2D5A3D',      // Surface color for cards and inputs
   text: '#FFFFFF',         // White text
   textSecondary: '#B0B0B0', // Secondary text color
-  grey: '#6C757D',         // Grey accent
-  lightGrey: '#D3D3D3',    // Light grey
+  grey: '#d4f5e9',         // Grey accent
+  lightGrey: '#D3D3D3',    // Light grey //#D3D3D3
   dopeButton: '#FF9F0A',   // DOPE button color
   card: '#2D5A3D',         // Medium green for cards
   success: '#40916C',      // Success green

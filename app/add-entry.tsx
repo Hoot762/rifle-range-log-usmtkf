@@ -173,6 +173,7 @@ export default function AddEntryScreen() {
   const [targetImageUri, setTargetImageUri] = useState<string | null>(null);
   const [showShotScores, setShowShotScores] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [markersIncluded, setMarkersIncluded] = useState(true); // New state for marker inclusion
 
   // Create refs for tracking which dropdown should be focused next
   const [focusedShotIndex, setFocusedShotIndex] = useState<number | null>(null);
@@ -292,7 +293,10 @@ export default function AddEntryScreen() {
     let numericTotal = 0;
     let vCount = 0;
 
-    validScores.forEach(score => {
+    // Determine which shots to include based on markersIncluded state
+    const scoresToCalculate = markersIncluded ? validScores : validScores.slice(2);
+
+    scoresToCalculate.forEach(score => {
       const cleanScore = score.trim().toLowerCase();
       if (cleanScore === 'v') {
         numericTotal += 5;
@@ -308,7 +312,18 @@ export default function AddEntryScreen() {
     const decimalPart = vCount / 10;
     const totalScore = numericTotal + decimalPart;
     setScore(totalScore.toString());
-    console.log(`Calculated total score: ${totalScore} (${numericTotal} points + ${vCount} v's as 0.${vCount})`);
+    
+    const includedShots = markersIncluded ? 'all shots' : 'shots 3-12 (markers excluded)';
+    console.log(`Calculated total score: ${totalScore} (${numericTotal} points + ${vCount} v's as 0.${vCount}) from ${includedShots}`);
+  };
+
+  const toggleMarkers = () => {
+    const newMarkersIncluded = !markersIncluded;
+    setMarkersIncluded(newMarkersIncluded);
+    console.log(`Markers ${newMarkersIncluded ? 'included' : 'excluded'} from score calculation`);
+    
+    // Recalculate score with new marker status
+    calculateTotalScore(shotScores);
   };
 
   const addAllShots = () => {
@@ -324,7 +339,8 @@ export default function AddEntryScreen() {
   const clearAllShots = () => {
     setShotScores(Array(12).fill(''));
     setScore('');
-    console.log('Cleared all shot scores');
+    setMarkersIncluded(true); // Reset markers to included when clearing
+    console.log('Cleared all shot scores and reset markers to included');
   };
 
   const handleDistanceChange = (value: string) => {
@@ -640,6 +656,19 @@ export default function AddEntryScreen() {
         {rows}
         <View style={[commonStyles.row, { marginTop: 15 }]}>
           <Button
+            text={markersIncluded ? "Remove Markers" : "Add Markers"}
+            onPress={toggleMarkers}
+            style={[buttonStyles.accent, { 
+              flex: 1,
+              marginRight: 5,
+              paddingVertical: 8,
+              minHeight: 35
+            }]}
+            textStyle={{ fontSize: 14 }}
+          />
+        </View>
+        <View style={[commonStyles.row, { marginTop: 10 }]}>
+          <Button
             text="Clear All"
             onPress={clearAllShots}
             style={[buttonStyles.backButton, { 
@@ -662,6 +691,17 @@ export default function AddEntryScreen() {
             textStyle={{ fontSize: 14 }}
           />
         </View>
+        {!markersIncluded && (
+          <Text style={[commonStyles.text, { 
+            fontSize: 12, 
+            color: colors.accent,
+            marginTop: 10,
+            textAlign: 'center',
+            fontStyle: 'italic'
+          }]}>
+            Markers excluded: Only shots 3-12 are included in the total score
+          </Text>
+        )}
       </View>
     );
   };
