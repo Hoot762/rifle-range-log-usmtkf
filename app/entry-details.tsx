@@ -1,6 +1,7 @@
+
 import { Text, View, SafeAreaView, ScrollView, Image, TouchableOpacity, Modal } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Button from '../components/Button';
 import Icon from '../components/Icon';
 import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
@@ -32,11 +33,7 @@ export default function EntryDetailsScreen() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageModalVisible, setImageModalVisible] = useState(false);
 
-  useEffect(() => {
-    loadEntry();
-  }, [entryId]);
-
-  const loadEntry = async () => {
+  const loadEntry = useCallback(async () => {
     console.log('Loading entry details for ID:', entryId);
     try {
       const data = await AsyncStorage.getItem('rangeEntries');
@@ -55,7 +52,11 @@ export default function EntryDetailsScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [entryId]);
+
+  useEffect(() => {
+    loadEntry();
+  }, [loadEntry]);
 
   const openImageModal = (imageUri: string) => {
     setSelectedImage(imageUri);

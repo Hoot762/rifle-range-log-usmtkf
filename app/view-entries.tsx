@@ -51,33 +51,7 @@ export default function ViewEntriesScreen() {
     }, [])
   );
 
-  // Apply filters whenever entries, activeFilter, or filterValue changes
-  useEffect(() => {
-    applyFilter();
-  }, [entries, activeFilter, filterValue]);
-
-  const loadEntries = async () => {
-    console.log('Loading entries...');
-    try {
-      const data = await AsyncStorage.getItem('rangeEntries');
-      if (data) {
-        const parsedEntries: RangeEntry[] = JSON.parse(data);
-        parsedEntries.sort((a, b) => b.timestamp - a.timestamp);
-        setEntries(parsedEntries);
-        console.log(`Loaded ${parsedEntries.length} entries`);
-      } else {
-        console.log('No entries found');
-        setEntries([]);
-      }
-    } catch (error) {
-      console.error('Error loading entries:', error);
-      Alert.alert('Error', 'Failed to load entries');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const applyFilter = () => {
+  const applyFilter = useCallback(() => {
     console.log(`Applying filter: ${activeFilter}, value: ${filterValue}`);
     
     if (activeFilter === 'all' || !filterValue.trim()) {
@@ -104,6 +78,32 @@ export default function ViewEntriesScreen() {
 
     console.log(`Filtered ${entries.length} entries to ${filtered.length} entries`);
     setFilteredEntries(filtered);
+  }, [entries, activeFilter, filterValue]);
+
+  // Apply filters whenever entries, activeFilter, or filterValue changes
+  useEffect(() => {
+    applyFilter();
+  }, [applyFilter]);
+
+  const loadEntries = async () => {
+    console.log('Loading entries...');
+    try {
+      const data = await AsyncStorage.getItem('rangeEntries');
+      if (data) {
+        const parsedEntries: RangeEntry[] = JSON.parse(data);
+        parsedEntries.sort((a, b) => b.timestamp - a.timestamp);
+        setEntries(parsedEntries);
+        console.log(`Loaded ${parsedEntries.length} entries`);
+      } else {
+        console.log('No entries found');
+        setEntries([]);
+      }
+    } catch (error) {
+      console.error('Error loading entries:', error);
+      Alert.alert('Error', 'Failed to load entries');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const setFilter = (filterType: FilterType) => {

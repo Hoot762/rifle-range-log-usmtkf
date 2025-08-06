@@ -6,16 +6,6 @@ import Button from '../components/Button';
 import Icon from '../components/Icon';
 import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import {Now I need to add the radio buttons for "TR" and "F-Class" above the Overall Score section. I'll add a new state variable for the selected class and create the radio button UI.
-
-<write file="app/add-entry.tsx">
-import { Text, View, SafeAreaView, ScrollView, TextInput, Alert, Image, TouchableOpacity, Modal, KeyboardAvoidingView, Pressable } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useState, useRef, useEffect } from 'react';
-import Button from '../components/Button';
-import Icon from '../components/Icon';
-import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';

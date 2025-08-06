@@ -40,7 +40,7 @@ interface ImportData {
 interface ExportData {
   exportDate: string;
   totalEntries: number;
-  entries: Array<RangeEntry & { targetImageBase64?: string }>;
+  entries: (RangeEntry & { targetImageBase64?: string })[];
 }
 
 export default function LoadDataScreen() {
@@ -363,7 +363,7 @@ export default function LoadDataScreen() {
       }
 
       console.log('Converting images to base64...');
-      const entriesWithImages: Array<RangeEntry & { targetImageBase64?: string }> = [];
+      const entriesWithImages: (RangeEntry & { targetImageBase64?: string })[] = [];
       let successfulImageConversions = 0;
       let failedImageConversions = 0;
       
