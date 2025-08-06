@@ -51,7 +51,7 @@ export const buttonStyles = StyleSheet.create({
     width: '100%',
   },
   backButton: {
-    backgroundColor: colors.grey,
+    backgroundColor: colors.lightGrey,
     alignSelf: 'center',
     width: '100%',
   },
