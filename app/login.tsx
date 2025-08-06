@@ -10,7 +10,6 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   console.log('LoginScreen rendered');
 
@@ -50,42 +49,6 @@ export default function LoginScreen() {
     }
   };
 
-  const handleForgotPassword = async () => {
-    if (!email.trim()) {
-      Alert.alert('Error', 'Please enter your email address first');
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: 'https://natively.dev/email-confirmed'
-      });
-
-      if (error) {
-        console.log('Password reset failed:', error.message);
-        Alert.alert('Password Reset Failed', error.message);
-        return;
-      }
-
-      Alert.alert(
-        'Password Reset Email Sent',
-        'Please check your email for instructions to reset your password.',
-        [{ text: 'OK', onPress: () => setShowForgotPassword(false) }]
-      );
-    } catch (error) {
-      console.error('Error during password reset:', error);
-      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const toggleForgotPassword = () => {
-    setShowForgotPassword(!showForgotPassword);
-  };
-
   return (
     <SafeAreaView style={styles.wrapper}>
       <KeyboardAvoidingView 
@@ -105,10 +68,7 @@ export default function LoginScreen() {
             
             <Text style={styles.title}>Rifle Range Logger</Text>
             <Text style={styles.subtitle}>
-              {showForgotPassword 
-                ? 'Reset your password' 
-                : 'Sign in to access your rifle range data'
-              }
+              Sign in to access your rifle range data
             </Text>
           </View>
           
@@ -127,49 +87,26 @@ export default function LoginScreen() {
               editable={!isLoading}
             />
             
-            {!showForgotPassword && (
-              <>
-                <Text style={styles.label}>Password</Text>
-                <TextInput
-                  style={styles.input}
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="Enter your password"
-                  placeholderTextColor="#888888"
-                  secureTextEntry={true}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  returnKeyType="done"
-                  onSubmitEditing={handleLogin}
-                  editable={!isLoading}
-                />
-              </>
-            )}
+            <Text style={styles.label}>Password</Text>
+            <TextInput
+              style={styles.input}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Enter your password"
+              placeholderTextColor="#888888"
+              secureTextEntry={true}
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="done"
+              onSubmitEditing={handleLogin}
+              editable={!isLoading}
+            />
             
             <View style={styles.buttonContainer}>
               <Button
-                text={
-                  isLoading 
-                    ? (showForgotPassword 
-                      ? "Sending Reset Email..." 
-                      : "Signing In..."
-                    )
-                    : (showForgotPassword 
-                      ? "Send Reset Email" 
-                      : "Sign In"
-                    )
-                }
-                onPress={showForgotPassword ? handleForgotPassword : handleLogin}
+                text={isLoading ? "Signing In..." : "Sign In"}
+                onPress={handleLogin}
                 style={[buttonStyles.primary, styles.authButton]}
-              />
-            </View>
-
-            <View style={styles.toggleContainer}>
-              <Button
-                text={showForgotPassword ? 'Back to Sign In' : 'Forgot Password?'}
-                onPress={toggleForgotPassword}
-                style={[buttonStyles.accent, styles.forgotButton]}
-                textStyle={styles.forgotText}
               />
             </View>
           </View>
@@ -280,19 +217,5 @@ const styles = StyleSheet.create({
     boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.3)',
     elevation: 6,
     minHeight: 60,
-  },
-  toggleContainer: {
-    alignItems: 'center',
-    paddingTop: 10,
-  },
-  forgotButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 6,
-    minHeight: 35,
-  },
-  forgotText: {
-    fontSize: 12,
-    opacity: 0.8,
   },
 });
