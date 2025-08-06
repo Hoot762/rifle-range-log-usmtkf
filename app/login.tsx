@@ -1,51 +1,144 @@
 
 import React, { useState } from 'react';
-import { Text, View, SafeAreaView, TextInput, Alert, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
+import { Text, View, SafeAreaView, TextInput, Alert, KeyboardAvoidingView, Platform, StyleSheet, Image } from 'react-native';
 import { router } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Button from '../components/Button';
 import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
-
-const CORRECT_LOGIN_CODE = '27PutneyRifles!';
-const LOGIN_STORAGE_KEY = 'rifle_range_login_status';
+import { supabase } from './integrations/supabase/client';
 
 export default function LoginScreen() {
-  const [loginCode, setLoginCode] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   console.log('LoginScreen rendered');
 
   const handleLogin = async () => {
-    console.log('Login attempt with code:', loginCode);
+    console.log('Login attempt with email:', email);
     
-    if (!loginCode.trim()) {
-      Alert.alert('Error', 'Please enter a login code');
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Error', 'Please enter both email and password');
       return;
     }
 
     setIsLoading(true);
 
     try {
-      if (loginCode === CORRECT_LOGIN_CODE) {
-        console.log('Login successful');
-        // Store login status
-        await AsyncStorage.setItem(LOGIN_STORAGE_KEY, 'true');
-        // Navigate to home screen
-        router.replace('/');
-      } else {
-        console.log('Login failed - incorrect code');
-        Alert.alert(
-          'Access Denied', 
-          'You are not allowed to use this app.',
-          [{ text: 'OK', onPress: () => setLoginCode('') }]
-        );
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password,
+      });
+
+      if (error) {
+        console.log('Login failed:', error.message);
+        Alert.alert('Login Failed', error.message);
+        return;
+      }
+
+      if (data.user) {
+        console.log('Login successful for user:', data.user.email);
+        Alert.alert('Success', 'Login successful!', [
+          { text: 'OK', onPress: () => router.replace('/') }
+        ]);
       }
     } catch (error) {
       console.error('Error during login:', error);
-      Alert.alert('Error', 'An error occurred during login. Please try again.');
+      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSignUp = async () => {
+    console.log('Sign up attempt with email:', email);
+    
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Error', 'Please enter both email and password');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters long');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password: password,
+        options: {
+          emailRedirectTo: 'https://natively.dev/email-confirmed'
+        }
+      });
+
+      if (error) {
+        console.log('Sign up failed:', error.message);
+        Alert.alert('Sign Up Failed', error.message);
+        return;
+      }
+
+      if (data.user) {
+        console.log('Sign up successful for user:', data.user.email);
+        Alert.alert(
+          'Registration Successful!', 
+          'Please check your email and click the verification link to complete your registration.',
+          [{ text: 'OK', onPress: () => setIsSignUp(false) }]
+        );
+      }
+    } catch (error) {
+      console.error('Error during sign up:', error);
+      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      Alert.alert('Error', 'Please enter your email address first');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: 'https://natively.dev/email-confirmed'
+      });
+
+      if (error) {
+        console.log('Password reset failed:', error.message);
+        Alert.alert('Password Reset Failed', error.message);
+        return;
+      }
+
+      Alert.alert(
+        'Password Reset Email Sent',
+        'Please check your email for instructions to reset your password.',
+        [{ text: 'OK', onPress: () => setShowForgotPassword(false) }]
+      );
+    } catch (error) {
+      console.error('Error during password reset:', error);
+      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const toggleMode = () => {
+    setIsSignUp(!isSignUp);
+    setShowForgotPassword(false);
+    setEmail('');
+    setPassword('');
+  };
+
+  const toggleForgotPassword = () => {
+    setShowForgotPassword(!showForgotPassword);
+    setIsSignUp(false);
   };
 
   return (
@@ -56,34 +149,104 @@ export default function LoginScreen() {
       >
         <View style={styles.content}>
           <View style={styles.headerSection}>
+            {/* Target image in circular container - same as home screen */}
+            <View style={styles.targetImageContainer}>
+              <Image 
+                source={require('../assets/images/0c6f758e-3623-49b9-8253-850b43db8407.png')}
+                style={styles.targetImage}
+                resizeMode="cover"
+              />
+            </View>
+            
             <Text style={styles.title}>Rifle Range Logger</Text>
             <Text style={styles.subtitle}>
-              Please enter your login code to access the app
+              {showForgotPassword 
+                ? 'Reset your password' 
+                : isSignUp 
+                ? 'Create your account to get started' 
+                : 'Sign in to access your rifle range data'
+              }
             </Text>
           </View>
           
           <View style={styles.formSection}>
-            <Text style={styles.label}>Login Code</Text>
+            <Text style={styles.label}>Email</Text>
             <TextInput
               style={styles.input}
-              value={loginCode}
-              onChangeText={setLoginCode}
-              placeholder="Enter your login code here"
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Enter your email address"
               placeholderTextColor="#888888"
-              secureTextEntry={true}
+              keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
-              returnKeyType="done"
-              onSubmitEditing={handleLogin}
+              returnKeyType="next"
               editable={!isLoading}
             />
             
+            {!showForgotPassword && (
+              <>
+                <Text style={styles.label}>Password</Text>
+                <TextInput
+                  style={styles.input}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="Enter your password"
+                  placeholderTextColor="#888888"
+                  secureTextEntry={true}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  returnKeyType="done"
+                  onSubmitEditing={isSignUp ? handleSignUp : handleLogin}
+                  editable={!isLoading}
+                />
+              </>
+            )}
+            
             <View style={styles.buttonContainer}>
               <Button
-                text={isLoading ? "Logging in..." : "Login"}
-                onPress={handleLogin}
-                style={[buttonStyles.primary, styles.loginButton]}
+                text={
+                  isLoading 
+                    ? (showForgotPassword 
+                      ? "Sending Reset Email..." 
+                      : isSignUp 
+                      ? "Creating Account..." 
+                      : "Signing In..."
+                    )
+                    : (showForgotPassword 
+                      ? "Send Reset Email" 
+                      : isSignUp 
+                      ? "Create Account" 
+                      : "Sign In"
+                    )
+                }
+                onPress={showForgotPassword ? handleForgotPassword : isSignUp ? handleSignUp : handleLogin}
+                style={[buttonStyles.primary, styles.authButton]}
               />
+            </View>
+
+            <View style={styles.toggleContainer}>
+              {!showForgotPassword && (
+                <>
+                  <Text style={styles.toggleText}>
+                    {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+                  </Text>
+                  <Button
+                    text={isSignUp ? 'Sign In' : 'Create Account'}
+                    onPress={toggleMode}
+                    style={[buttonStyles.secondary, styles.toggleButton]}
+                  />
+                </>
+              )}
+
+              {!isSignUp && (
+                <Button
+                  text={showForgotPassword ? 'Back to Sign In' : 'Forgot Password?'}
+                  onPress={toggleForgotPassword}
+                  style={[buttonStyles.accent, styles.forgotButton]}
+                  textStyle={styles.forgotText}
+                />
+              )}
             </View>
           </View>
         </View>
@@ -110,25 +273,40 @@ const styles = StyleSheet.create({
   },
   headerSection: {
     alignItems: 'center',
-    marginBottom: 50,
+    marginBottom: 40,
     paddingHorizontal: 20,
   },
+  targetImageContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    overflow: 'hidden',
+    marginBottom: 20,
+    borderWidth: 3,
+    borderColor: colors.border,
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.4)',
+    elevation: 6,
+  },
+  targetImage: {
+    width: '100%',
+    height: '100%',
+  },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '800',
     textAlign: 'center',
     color: colors.text,
-    marginBottom: 20,
+    marginBottom: 15,
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '500',
     color: colors.text,
     textAlign: 'center',
-    lineHeight: 26,
+    lineHeight: 22,
     opacity: 0.9,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 1, height: 1 },
@@ -146,10 +324,10 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   label: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: colors.text,
-    marginBottom: 15,
+    marginBottom: 10,
     textAlign: 'left',
   },
   input: {
@@ -158,24 +336,52 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderRadius: 12,
     padding: 18,
-    marginBottom: 30,
+    marginBottom: 20,
     width: '100%',
     color: '#000000',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.3)',
     elevation: 4,
-    minHeight: 60,
+    minHeight: 55,
   },
   buttonContainer: {
     width: '100%',
     alignItems: 'center',
+    marginBottom: 20,
   },
-  loginButton: {
+  authButton: {
     paddingVertical: 18,
     borderRadius: 12,
     boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.3)',
     elevation: 6,
     minHeight: 60,
+  },
+  toggleContainer: {
+    alignItems: 'center',
+    paddingTop: 10,
+  },
+  toggleText: {
+    fontSize: 14,
+    color: colors.text,
+    marginBottom: 10,
+    opacity: 0.8,
+  },
+  toggleButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    minHeight: 45,
+    marginBottom: 10,
+  },
+  forgotButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    minHeight: 35,
+  },
+  forgotText: {
+    fontSize: 12,
+    opacity: 0.8,
   },
 });

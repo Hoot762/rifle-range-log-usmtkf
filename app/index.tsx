@@ -1,13 +1,29 @@
 
-import { Text, View, SafeAreaView, Image, StyleSheet } from 'react-native';
+import { Text, View, SafeAreaView, Image, StyleSheet, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import Button from '../components/Button';
 import Icon from '../components/Icon';
 import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
+import { supabase } from './integrations/supabase/client';
 
 export default function HomeScreen() {
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
   console.log('HomeScreen rendered');
+
+  useEffect(() => {
+    // Get current user info
+    const getCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserEmail(user.email);
+        console.log('Current user:', user.email);
+      }
+    };
+
+    getCurrentUser();
+  }, []);
 
   const navigateToAddEntry = () => {
     console.log('Navigating to add entry screen');
@@ -34,6 +50,34 @@ export default function HomeScreen() {
     }
   };
 
+  const handleLogout = async () => {
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            console.log('Signing out user');
+            const { error } = await supabase.auth.signOut();
+            if (error) {
+              console.error('Error signing out:', error);
+              Alert.alert('Error', 'Failed to sign out. Please try again.');
+            } else {
+              console.log('Successfully signed out');
+              router.replace('/login');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={commonStyles.wrapper}>
       <View style={commonStyles.container}>
@@ -51,6 +95,12 @@ export default function HomeScreen() {
           <Text style={commonStyles.text}>
             Track your rifle range data including scope settings, distances, and scores.
           </Text>
+
+          {userEmail && (
+            <Text style={styles.userInfo}>
+              Welcome, {userEmail}
+            </Text>
+          )}
           
           <View style={commonStyles.section}>
             <View style={commonStyles.buttonContainer}>
@@ -85,6 +135,15 @@ export default function HomeScreen() {
                 style={buttonStyles.accent}
               />
             </View>
+
+            <View style={commonStyles.buttonContainer}>
+              <Button
+                text="Sign Out"
+                onPress={handleLogout}
+                style={[buttonStyles.secondary, styles.logoutButton]}
+                textStyle={styles.logoutText}
+              />
+            </View>
           </View>
         </View>
       </View>
@@ -107,5 +166,20 @@ const styles = StyleSheet.create({
   targetImage: {
     width: '100%',
     height: '100%',
+  },
+  userInfo: {
+    fontSize: 14,
+    color: colors.text,
+    marginBottom: 20,
+    opacity: 0.8,
+    textAlign: 'center',
+  },
+  logoutButton: {
+    backgroundColor: '#dc3545',
+    borderColor: '#dc3545',
+    marginTop: 10,
+  },
+  logoutText: {
+    color: '#ffffff',
   },
 });
