@@ -10,7 +10,6 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   console.log('LoginScreen rendered');
@@ -51,52 +50,6 @@ export default function LoginScreen() {
     }
   };
 
-  const handleSignUp = async () => {
-    console.log('Sign up attempt with email:', email);
-    
-    if (!email.trim() || !password.trim()) {
-      Alert.alert('Error', 'Please enter both email and password');
-      return;
-    }
-
-    if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters long');
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email: email.trim(),
-        password: password,
-        options: {
-          emailRedirectTo: 'https://natively.dev/email-confirmed'
-        }
-      });
-
-      if (error) {
-        console.log('Sign up failed:', error.message);
-        Alert.alert('Sign Up Failed', error.message);
-        return;
-      }
-
-      if (data.user) {
-        console.log('Sign up successful for user:', data.user.email);
-        Alert.alert(
-          'Registration Successful!', 
-          'Please check your email and click the verification link to complete your registration.',
-          [{ text: 'OK', onPress: () => setIsSignUp(false) }]
-        );
-      }
-    } catch (error) {
-      console.error('Error during sign up:', error);
-      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleForgotPassword = async () => {
     if (!email.trim()) {
       Alert.alert('Error', 'Please enter your email address first');
@@ -129,16 +82,8 @@ export default function LoginScreen() {
     }
   };
 
-  const toggleMode = () => {
-    setIsSignUp(!isSignUp);
-    setShowForgotPassword(false);
-    setEmail('');
-    setPassword('');
-  };
-
   const toggleForgotPassword = () => {
     setShowForgotPassword(!showForgotPassword);
-    setIsSignUp(false);
   };
 
   return (
@@ -162,8 +107,6 @@ export default function LoginScreen() {
             <Text style={styles.subtitle}>
               {showForgotPassword 
                 ? 'Reset your password' 
-                : isSignUp 
-                ? 'Create your account to get started' 
                 : 'Sign in to access your rifle range data'
               }
             </Text>
@@ -197,7 +140,7 @@ export default function LoginScreen() {
                   autoCapitalize="none"
                   autoCorrect={false}
                   returnKeyType="done"
-                  onSubmitEditing={isSignUp ? handleSignUp : handleLogin}
+                  onSubmitEditing={handleLogin}
                   editable={!isLoading}
                 />
               </>
@@ -209,44 +152,25 @@ export default function LoginScreen() {
                   isLoading 
                     ? (showForgotPassword 
                       ? "Sending Reset Email..." 
-                      : isSignUp 
-                      ? "Creating Account..." 
                       : "Signing In..."
                     )
                     : (showForgotPassword 
                       ? "Send Reset Email" 
-                      : isSignUp 
-                      ? "Create Account" 
                       : "Sign In"
                     )
                 }
-                onPress={showForgotPassword ? handleForgotPassword : isSignUp ? handleSignUp : handleLogin}
+                onPress={showForgotPassword ? handleForgotPassword : handleLogin}
                 style={[buttonStyles.primary, styles.authButton]}
               />
             </View>
 
             <View style={styles.toggleContainer}>
-              {!showForgotPassword && (
-                <>
-                  <Text style={styles.toggleText}>
-                    {isSignUp ? 'Already have an account?' : "Don't have an account?"}
-                  </Text>
-                  <Button
-                    text={isSignUp ? 'Sign In' : 'Create Account'}
-                    onPress={toggleMode}
-                    style={[buttonStyles.secondary, styles.toggleButton]}
-                  />
-                </>
-              )}
-
-              {!isSignUp && (
-                <Button
-                  text={showForgotPassword ? 'Back to Sign In' : 'Forgot Password?'}
-                  onPress={toggleForgotPassword}
-                  style={[buttonStyles.accent, styles.forgotButton]}
-                  textStyle={styles.forgotText}
-                />
-              )}
+              <Button
+                text={showForgotPassword ? 'Back to Sign In' : 'Forgot Password?'}
+                onPress={toggleForgotPassword}
+                style={[buttonStyles.accent, styles.forgotButton]}
+                textStyle={styles.forgotText}
+              />
             </View>
           </View>
         </View>
@@ -360,19 +284,6 @@ const styles = StyleSheet.create({
   toggleContainer: {
     alignItems: 'center',
     paddingTop: 10,
-  },
-  toggleText: {
-    fontSize: 14,
-    color: colors.text,
-    marginBottom: 10,
-    opacity: 0.8,
-  },
-  toggleButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    minHeight: 45,
-    marginBottom: 10,
   },
   forgotButton: {
     paddingVertical: 8,
