@@ -1,13 +1,10 @@
 
-import { Text, View, SafeAreaView, Image, StyleSheet, Alert } from 'react-native';
+import { Text, View, SafeAreaView, Image, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import Button from '../components/Button';
 import Icon from '../components/Icon';
 import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const LOGIN_STORAGE_KEY = 'rifle_range_login_status';
 
 export default function HomeScreen() {
   console.log('HomeScreen rendered');
@@ -35,33 +32,6 @@ export default function HomeScreen() {
     } catch (error) {
       console.error('Error navigating to dope-cards:', error);
     }
-  };
-
-  const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              console.log('Logging out user...');
-              await AsyncStorage.removeItem(LOGIN_STORAGE_KEY);
-              router.replace('/login');
-            } catch (error) {
-              console.error('Error during logout:', error);
-              Alert.alert('Error', 'An error occurred during logout.');
-            }
-          },
-        },
-      ]
-    );
   };
 
   return (
@@ -113,14 +83,6 @@ export default function HomeScreen() {
                 text="Backup/Restore"
                 onPress={navigateToLoadData}
                 style={buttonStyles.accent}
-              />
-            </View>
-
-            <View style={[commonStyles.buttonContainer, { marginTop: 30 }]}>
-              <Button
-                text="Logout"
-                onPress={handleLogout}
-                style={buttonStyles.danger}
               />
             </View>
           </View>
