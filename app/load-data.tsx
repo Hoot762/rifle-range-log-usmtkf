@@ -24,6 +24,7 @@ interface RangeEntry {
   shotScores?: string[];
   bullGrainWeight?: string;
   targetImageUri?: string;
+  selectedClass?: string; // Added selectedClass property
   timestamp: number;
 }
 
@@ -113,6 +114,7 @@ export default function LoadDataScreen() {
         notes: 'Good conditions, light wind from the east',
         score: '43.5',
         bullGrainWeight: '155 gr',
+        selectedClass: 'TR',
         timestamp: Date.now() - 86400000,
       },
       {
@@ -127,6 +129,7 @@ export default function LoadDataScreen() {
         notes: 'Competition day, moderate wind conditions',
         score: '44.6',
         bullGrainWeight: '155 gr',
+        selectedClass: 'F-Class',
         timestamp: Date.now() - 172800000,
       }
     ];
@@ -249,8 +252,12 @@ export default function LoadDataScreen() {
           timestamp: entry.timestamp || Date.now(),
           ...(entry.score && { score: entry.score }),
           ...(entry.shotScores && Array.isArray(entry.shotScores) && { shotScores: entry.shotScores }),
-          ...(entry.bullGrainWeight && { bullGrainWeight: entry.bullGrainWeight })
+          ...(entry.bullGrainWeight && { bullGrainWeight: entry.bullGrainWeight }),
+          // Properly handle selectedClass with default fallback
+          selectedClass: entry.selectedClass || 'TR'
         };
+
+        console.log(`Imported selectedClass for entry ${entry.id}: ${processedEntry.selectedClass}`);
 
         // Handle image import
         if (entry.targetImageBase64) {
@@ -382,10 +389,14 @@ export default function LoadDataScreen() {
           windageMOA: entry.windageMOA,
           notes: entry.notes,
           timestamp: entry.timestamp,
+          // Include selectedClass in export
+          selectedClass: entry.selectedClass || 'TR',
           ...(entry.score && { score: entry.score }),
           ...(entry.shotScores && { shotScores: entry.shotScores }),
           ...(entry.bullGrainWeight && { bullGrainWeight: entry.bullGrainWeight })
         };
+
+        console.log(`Exporting selectedClass for entry ${entry.id}: ${entryWithImage.selectedClass}`);
         
         if (entry.targetImageUri) {
           try {
