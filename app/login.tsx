@@ -69,7 +69,7 @@ export default function LoginScreen() {
               value={loginCode}
               onChangeText={setLoginCode}
               placeholder="Enter your login code here"
-              placeholderTextColor="#999999"
+              placeholderTextColor="#888888"
               secureTextEntry={true}
               autoCapitalize="none"
               autoCorrect={false}
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   },
   headerSection: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 50,
     paddingHorizontal: 20,
   },
   title: {
@@ -140,42 +140,42 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 30,
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: colors.border,
     boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.4)',
     elevation: 8,
   },
   label: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: '700',
     color: colors.text,
-    marginBottom: 12,
+    marginBottom: 15,
     textAlign: 'left',
   },
   input: {
     backgroundColor: '#FFFFFF',
     borderColor: colors.border,
-    borderWidth: 2,
+    borderWidth: 3,
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
+    padding: 18,
+    marginBottom: 30,
     width: '100%',
     color: '#000000',
     fontSize: 18,
-    fontWeight: '500',
-    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.2)',
-    elevation: 2,
-    minHeight: 50,
+    fontWeight: '600',
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.3)',
+    elevation: 4,
+    minHeight: 60,
   },
   buttonContainer: {
     width: '100%',
     alignItems: 'center',
   },
   loginButton: {
-    paddingVertical: 16,
+    paddingVertical: 18,
     borderRadius: 12,
     boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.3)',
     elevation: 6,
-    minHeight: 50,
+    minHeight: 60,
   },
 });
