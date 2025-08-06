@@ -1,5 +1,15 @@
 
-import { Text, View, SafeAreaView, ScrollView, TextInput, Alert, Image, TouchableOpacity, Modal, KeyboardAvoidingView } from 'react-native';
+import { Text, View, SafeAreaView, ScrollView, TextInput, Alert, Image, TouchableOpacity, Modal, KeyboardAvoidingView, Pressable } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useState, useRef, useEffect } from 'react';
+import Button from '../components/Button';
+import Icon from '../components/Icon';
+import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import {Now I need to add the radio buttons for "TR" and "F-Class" above the Overall Score section. I'll add a new state variable for the selected class and create the radio button UI.
+
+<write file="app/add-entry.tsx">
+import { Text, View, SafeAreaView, ScrollView, TextInput, Alert, Image, TouchableOpacity, Modal, KeyboardAvoidingView, Pressable } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useRef, useEffect } from 'react';
 import Button from '../components/Button';
@@ -25,6 +35,7 @@ interface RangeEntry {
   shotScores?: string[];
   bullGrainWeight: string;
   targetImageUri?: string;
+  selectedClass?: string;
   timestamp: number;
 }
 
@@ -174,6 +185,7 @@ export default function AddEntryScreen() {
   const [showShotScores, setShowShotScores] = useState(false);
   const [loading, setLoading] = useState(false);
   const [markersIncluded, setMarkersIncluded] = useState(true); // State for marker inclusion
+  const [selectedClass, setSelectedClass] = useState('TR'); // New state for class selection
 
   // Create refs for tracking which dropdown should be focused next
   const [focusedShotIndex, setFocusedShotIndex] = useState<number | null>(null);
@@ -219,6 +231,9 @@ export default function AddEntryScreen() {
           const grainWeight = entryToEdit.bullGrainWeight || '';
           const numericValue = grainWeight.replace(/[^0-9.]/g, '');
           setBullGrainWeight(numericValue);
+          
+          // Load selected class
+          setSelectedClass(entryToEdit.selectedClass || 'TR');
           
           if (entryToEdit.shotScores && entryToEdit.shotScores.length > 0) {
             const paddedScores = [...entryToEdit.shotScores];
@@ -608,6 +623,7 @@ export default function AddEntryScreen() {
       shotScores: validShotScores.length > 0 ? validShotScores : undefined,
       bullGrainWeight: formattedBullGrainWeight,
       targetImageUri: targetImageUri || undefined,
+      selectedClass: selectedClass,
       timestamp: isEditMode ? Date.now() : Date.now(), // Update timestamp for edited entries
     };
 
@@ -749,6 +765,70 @@ export default function AddEntryScreen() {
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  const renderClassRadioButtons = () => {
+    const classOptions = ['TR', 'F-Class'];
+    
+    return (
+      <View style={{ marginBottom: 15 }}>
+        <Text style={commonStyles.label}>Class</Text>
+        <View style={{
+          flexDirection: 'row',
+          justifyContent: 'space-around',
+          marginTop: 8,
+          paddingHorizontal: 20
+        }}>
+          {classOptions.map((option) => (
+            <Pressable
+              key={option}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingVertical: 8,
+                paddingHorizontal: 16,
+                borderRadius: 8,
+                backgroundColor: selectedClass === option ? colors.accent + '20' : 'transparent',
+                borderWidth: 1,
+                borderColor: selectedClass === option ? colors.accent : colors.border,
+              }}
+              onPress={() => {
+                setSelectedClass(option);
+                console.log('Selected class:', option);
+              }}
+            >
+              <View style={{
+                width: 20,
+                height: 20,
+                borderRadius: 10,
+                borderWidth: 2,
+                borderColor: selectedClass === option ? colors.accent : colors.border,
+                backgroundColor: selectedClass === option ? colors.accent : 'transparent',
+                marginRight: 8,
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                {selectedClass === option && (
+                  <View style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: colors.background
+                  }} />
+                )}
+              </View>
+              <Text style={{
+                color: selectedClass === option ? colors.accent : colors.text,
+                fontSize: 16,
+                fontWeight: selectedClass === option ? '600' : '500'
+              }}>
+                {option}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+    );
   };
 
   if (loading) {
@@ -956,6 +1036,8 @@ export default function AddEntryScreen() {
                 />
               </View>
             </View>
+
+            {renderClassRadioButtons()}
 
             <Text style={commonStyles.label}>Overall Score (Points)</Text>
             <TextInput
