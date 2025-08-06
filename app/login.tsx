@@ -68,13 +68,14 @@ export default function LoginScreen() {
               style={styles.input}
               value={loginCode}
               onChangeText={setLoginCode}
-              placeholder="Enter login code"
-              placeholderTextColor={colors.textSecondary}
+              placeholder="Enter your login code here"
+              placeholderTextColor="#999999"
               secureTextEntry={true}
               autoCapitalize="none"
               autoCorrect={false}
               returnKeyType="done"
               onSubmitEditing={handleLogin}
+              editable={!isLoading}
             />
             
             <View style={styles.buttonContainer}>
@@ -104,19 +105,19 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 30,
+    paddingHorizontal: 20,
     paddingVertical: 40,
   },
   headerSection: {
     alignItems: 'center',
-    marginBottom: 50,
+    marginBottom: 40,
     paddingHorizontal: 20,
   },
   title: {
     fontSize: 32,
     fontWeight: '800',
     textAlign: 'center',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 20,
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 1, height: 1 },
@@ -125,7 +126,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 18,
     fontWeight: '500',
-    color: '#FFFFFF',
+    color: colors.text,
     textAlign: 'center',
     lineHeight: 26,
     opacity: 0.9,
@@ -136,10 +137,10 @@ const styles = StyleSheet.create({
   formSection: {
     width: '100%',
     maxWidth: 400,
-    backgroundColor: 'rgba(45, 90, 61, 0.8)',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 30,
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: colors.border,
     boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.4)',
     elevation: 8,
@@ -147,12 +148,9 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 12,
     textAlign: 'left',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 1,
   },
   input: {
     backgroundColor: '#FFFFFF',
@@ -167,6 +165,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.2)',
     elevation: 2,
+    minHeight: 50,
   },
   buttonContainer: {
     width: '100%',
@@ -177,5 +176,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.3)',
     elevation: 6,
+    minHeight: 50,
   },
 });
