@@ -68,7 +68,7 @@ export default function LoginScreen() {
             
             <Text style={styles.title}>Rifle Range Logger</Text>
             <Text style={styles.subtitle}>
-              Sign in to access your rifle range data
+              Sign in to access your range data
             </Text>
           </View>
           
@@ -176,13 +176,9 @@ const styles = StyleSheet.create({
   formSection: {
     width: '100%',
     maxWidth: 400,
-    backgroundColor: colors.surface,
+    backgroundColor: 'transparent',
     borderRadius: 16,
     padding: 30,
-    borderWidth: 3,
-    borderColor: colors.border,
-    boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.4)',
-    elevation: 8,
   },
   label: {
     fontSize: 18,
