@@ -3,24 +3,8 @@ import React, { useState } from 'react';
 import { Text, View, SafeAreaView, TextInput, Alert, KeyboardAvoidingView, Platform, StyleSheet, Image } from 'react-native';
 import { router } from 'expo-router';
 import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
-
-// Import components with error handling
-let Button: any;
-let supabase: any;
-
-try {
-  Button = require('../components/Button').default;
-  console.log('Button component loaded successfully in login');
-} catch (error) {
-  console.error('Failed to load Button component in login:', error);
-}
-
-try {
-  supabase = require('./integrations/supabase/client').supabase;
-  console.log('Supabase client loaded successfully in login');
-} catch (error) {
-  console.error('Failed to load Supabase client in login:', error);
-}
+import Button from '../components/Button';
+import { supabase } from './integrations/supabase/client';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -34,11 +18,6 @@ export default function LoginScreen() {
     
     if (!email.trim() || !password.trim()) {
       Alert.alert('Error', 'Please enter both email and password');
-      return;
-    }
-
-    if (!supabase) {
-      Alert.alert('Error', 'Authentication service not available');
       return;
     }
 
@@ -126,17 +105,11 @@ export default function LoginScreen() {
             />
             
             <View style={styles.buttonContainer}>
-              {Button ? (
-                <Button
-                  text={isLoading ? "Signing In..." : "Sign In"}
-                  onPress={handleLogin}
-                  style={[buttonStyles.primary, styles.authButton]}
-                />
-              ) : (
-                <Text style={commonStyles.text}>
-                  Button component failed to load. Please restart the app.
-                </Text>
-              )}
+              <Button
+                text={isLoading ? "Signing In..." : "Sign In"}
+                onPress={handleLogin}
+                style={[buttonStyles.primary, styles.authButton]}
+              />
             </View>
           </View>
         </View>

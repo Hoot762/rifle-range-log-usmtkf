@@ -3,40 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { Text, View, SafeAreaView, Image, StyleSheet, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
-
-// Import components with error handling
-let Button: any;
-let Icon: any;
-let supabase: any;
-
-try {
-  Button = require('../components/Button').default;
-  console.log('Button component loaded successfully');
-} catch (error) {
-  console.error('Failed to load Button component:', error);
-}
-
-try {
-  Icon = require('../components/Icon').default;
-  console.log('Icon component loaded successfully');
-} catch (error) {
-  console.error('Failed to load Icon component:', error);
-}
-
-try {
-  supabase = require('./integrations/supabase/client').supabase;
-  console.log('Supabase client loaded successfully');
-} catch (error) {
-  console.error('Failed to load Supabase client:', error);
-}
+import Button from '../components/Button';
+import { supabase } from './integrations/supabase/client';
 
 export default function HomeScreen() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   console.log('HomeScreen rendered');
-  console.log('Supabase client available:', !!supabase);
-  console.log('Router available:', !!router);
 
   useEffect(() => {
     // Get current user info with error handling
@@ -44,19 +18,15 @@ export default function HomeScreen() {
       try {
         console.log('Getting current user...');
         
-        if (supabase) {
-          const { data: { user }, error } = await supabase.auth.getUser();
-          
-          if (error) {
-            console.error('Error getting user:', error);
-          } else if (user) {
-            setUserEmail(user.email);
-            console.log('Current user:', user.email);
-          } else {
-            console.log('No user found');
-          }
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        if (error) {
+          console.error('Error getting user:', error);
+        } else if (user) {
+          setUserEmail(user.email);
+          console.log('Current user:', user.email);
         } else {
-          console.log('Supabase client not available');
+          console.log('No user found');
         }
       } catch (error) {
         console.error('Failed to get current user:', error);
@@ -126,18 +96,13 @@ export default function HomeScreen() {
             onPress: async () => {
               try {
                 console.log('Signing out user');
-                if (supabase) {
-                  const { error } = await supabase.auth.signOut();
-                  if (error) {
-                    console.error('Error signing out:', error);
-                    Alert.alert('Error', 'Failed to sign out. Please try again.');
-                  } else {
-                    console.log('Successfully signed out');
-                    router.replace('/login');
-                  }
+                const { error } = await supabase.auth.signOut();
+                if (error) {
+                  console.error('Error signing out:', error);
+                  Alert.alert('Error', 'Failed to sign out. Please try again.');
                 } else {
-                  console.error('Supabase client not available');
-                  Alert.alert('Error', 'Authentication service not available');
+                  console.log('Successfully signed out');
+                  router.replace('/login');
                 }
               } catch (error) {
                 console.error('Error during logout:', error);
@@ -194,55 +159,47 @@ export default function HomeScreen() {
           )}
           
           <View style={commonStyles.section}>
-            {Button ? (
-              <>
-                <View style={commonStyles.buttonContainer}>
-                  <Button
-                    text="Add New Entry"
-                    onPress={navigateToAddEntry}
-                    style={buttonStyles.primary}
-                  />
-                </View>
-                
-                <View style={commonStyles.buttonContainer}>
-                  <Button
-                    text="View Entries"
-                    onPress={navigateToViewEntries}
-                    style={buttonStyles.secondary}
-                  />
-                </View>
-                
-                <View style={commonStyles.buttonContainer}>
-                  <Button
-                    text="DOPE"
-                    onPress={navigateToDopeCards}
-                    style={buttonStyles.dopeButton}
-                    textStyle={{ color: colors.text }}
-                  />
-                </View>
-                
-                <View style={commonStyles.buttonContainer}>
-                  <Button
-                    text="Backup/Restore"
-                    onPress={navigateToLoadData}
-                    style={buttonStyles.accent}
-                  />
-                </View>
+            <View style={commonStyles.buttonContainer}>
+              <Button
+                text="Add New Entry"
+                onPress={navigateToAddEntry}
+                style={buttonStyles.primary}
+              />
+            </View>
+            
+            <View style={commonStyles.buttonContainer}>
+              <Button
+                text="View Entries"
+                onPress={navigateToViewEntries}
+                style={buttonStyles.secondary}
+              />
+            </View>
+            
+            <View style={commonStyles.buttonContainer}>
+              <Button
+                text="DOPE"
+                onPress={navigateToDopeCards}
+                style={buttonStyles.dopeButton}
+                textStyle={{ color: colors.text }}
+              />
+            </View>
+            
+            <View style={commonStyles.buttonContainer}>
+              <Button
+                text="Backup/Restore"
+                onPress={navigateToLoadData}
+                style={buttonStyles.accent}
+              />
+            </View>
 
-                <View style={commonStyles.buttonContainer}>
-                  <Button
-                    text="Sign Out"
-                    onPress={handleLogout}
-                    style={buttonStyles.backButton}
-                    textStyle={styles.logoutText}
-                  />
-                </View>
-              </>
-            ) : (
-              <Text style={commonStyles.text}>
-                Button component failed to load. Please restart the app.
-              </Text>
-            )}
+            <View style={commonStyles.buttonContainer}>
+              <Button
+                text="Sign Out"
+                onPress={handleLogout}
+                style={buttonStyles.backButton}
+                textStyle={styles.logoutText}
+              />
+            </View>
           </View>
         </View>
       </View>
