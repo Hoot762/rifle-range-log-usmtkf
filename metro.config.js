@@ -17,6 +17,17 @@ config.resolver.assetExts.push('png', 'jpg', 'jpeg', 'gif', 'webp', 'svg');
 config.resolver.sourceExts.push('ts', 'tsx', 'js', 'jsx', 'json');
 
 // Add polyfills for Node.js modules that csv-stringify needs
+config.resolver.extraNodeModules = {
+  ...config.resolver.extraNodeModules,
+  'stream': require.resolve('stream-browserify'),
+  'util': require.resolve('util'),
+  'events': require.resolve('events'),
+  'buffer': require.resolve('@craftzdog/react-native-buffer'),
+  'process': require.resolve('process'),
+  'assert': require.resolve('assert'),
+};
+
+// Also add aliases for additional compatibility
 config.resolver.alias = {
   ...config.resolver.alias,
   'stream': 'stream-browserify',
@@ -24,6 +35,7 @@ config.resolver.alias = {
   'events': 'events',
   'buffer': '@craftzdog/react-native-buffer',
   'process': 'process',
+  'assert': 'assert',
 };
 
 module.exports = config;

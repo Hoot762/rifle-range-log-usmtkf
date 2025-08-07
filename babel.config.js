@@ -32,6 +32,7 @@ module.exports = function (api) {
             'util': 'util',
             'events': 'events',
             'process': 'process',
+            'assert': 'assert',
           },
         },
       ],

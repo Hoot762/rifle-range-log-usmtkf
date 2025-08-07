@@ -7,6 +7,9 @@ import 'react-native-url-polyfill/auto';
 import { Buffer } from '@craftzdog/react-native-buffer';
 import * as process from 'process';
 
+// Import stream polyfill explicitly
+import 'stream-browserify';
+
 // Make Buffer and process globally available
 global.Buffer = Buffer;
 global.process = process;
@@ -16,6 +19,7 @@ console.log('Polyfills loaded');
 console.log('Buffer available:', typeof Buffer !== 'undefined');
 console.log('URL available:', typeof URL !== 'undefined');
 console.log('process available:', typeof process !== 'undefined');
+console.log('stream polyfill loaded');
 
 // Then import the app entry point
 import 'expo-router/entry';
