@@ -2,8 +2,8 @@
 import React, { useState } from 'react';
 import { Text, View, SafeAreaView, TextInput, Alert, KeyboardAvoidingView, Platform, StyleSheet, Image } from 'react-native';
 import { router } from 'expo-router';
-import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
 import Button from '../components/Button';
+import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
 import { supabase } from './integrations/supabase/client';
 
 export default function LoginScreen() {
@@ -63,8 +63,6 @@ export default function LoginScreen() {
                 source={require('../assets/images/0c6f758e-3623-49b9-8253-850b43db8407.png')}
                 style={styles.targetImage}
                 resizeMode="cover"
-                onError={(error) => console.error('Login image load error:', error)}
-                onLoad={() => console.log('Login image loaded successfully')}
               />
             </View>
             

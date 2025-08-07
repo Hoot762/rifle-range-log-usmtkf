@@ -1,4 +1,3 @@
-
 module.exports = function (api) {
   api.cache(true);
   return {
@@ -22,17 +21,9 @@ module.exports = function (api) {
           alias: {
             '@': './',
             '@components': './components',
-            '@styles': './styles',
+            '@style': './style',
             '@hooks': './hooks',
             '@types': './types',
-            '@utils': './utils',
-            // Add polyfill aliases for babel
-            'stream': 'stream-browserify',
-            'buffer': '@craftzdog/react-native-buffer',
-            'util': 'util',
-            'events': 'events',
-            'process': 'process',
-            'assert': 'assert',
           },
         },
       ],

@@ -1,136 +1,84 @@
 
-import React, { useState, useEffect } from 'react';
 import { Text, View, SafeAreaView, Image, StyleSheet, Alert } from 'react-native';
 import { router } from 'expo-router';
-import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
+import { useState, useEffect } from 'react';
 import Button from '../components/Button';
+import Icon from '../components/Icon';
+import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
 import { supabase } from './integrations/supabase/client';
 
 export default function HomeScreen() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   console.log('HomeScreen rendered');
 
   useEffect(() => {
-    // Get current user info with error handling
+    // Get current user info
     const getCurrentUser = async () => {
-      try {
-        console.log('Getting current user...');
-        
-        const { data: { user }, error } = await supabase.auth.getUser();
-        
-        if (error) {
-          console.error('Error getting user:', error);
-        } else if (user) {
-          setUserEmail(user.email);
-          console.log('Current user:', user.email);
-        } else {
-          console.log('No user found');
-        }
-      } catch (error) {
-        console.error('Failed to get current user:', error);
-      } finally {
-        setIsLoading(false);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserEmail(user.email);
+        console.log('Current user:', user.email);
       }
     };
 
-    // Add a small delay to ensure everything is initialized
-    setTimeout(getCurrentUser, 100);
+    getCurrentUser();
   }, []);
 
   const navigateToAddEntry = () => {
-    try {
-      console.log('Navigating to add entry screen');
-      router.push('/add-entry');
-    } catch (error) {
-      console.error('Error navigating to add-entry:', error);
-      Alert.alert('Navigation Error', 'Failed to navigate to Add Entry screen');
-    }
+    console.log('Navigating to add entry screen');
+    router.push('/add-entry');
   };
 
   const navigateToViewEntries = () => {
-    try {
-      console.log('Navigating to view entries screen');
-      router.push('/view-entries');
-    } catch (error) {
-      console.error('Error navigating to view-entries:', error);
-      Alert.alert('Navigation Error', 'Failed to navigate to View Entries screen');
-    }
+    console.log('Navigating to view entries screen');
+    router.push('/view-entries');
   };
 
   const navigateToLoadData = () => {
-    try {
-      console.log('Navigating to load data screen');
-      router.push('/load-data');
-    } catch (error) {
-      console.error('Error navigating to load-data:', error);
-      Alert.alert('Navigation Error', 'Failed to navigate to Load Data screen');
-    }
+    console.log('Navigating to load data screen');
+    router.push('/load-data');
   };
 
   const navigateToDopeCards = () => {
+    console.log('DOPE button clicked - attempting navigation to dope-cards');
     try {
-      console.log('DOPE button clicked - attempting navigation to dope-cards');
       router.push('/dope-cards');
       console.log('Navigation to dope-cards initiated successfully');
     } catch (error) {
       console.error('Error navigating to dope-cards:', error);
-      Alert.alert('Navigation Error', 'Failed to navigate to DOPE Cards screen');
     }
   };
 
   const handleLogout = async () => {
-    try {
-      Alert.alert(
-        'Sign Out',
-        'Are you sure you want to sign out?',
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            console.log('Signing out user');
+            const { error } = await supabase.auth.signOut();
+            if (error) {
+              console.error('Error signing out:', error);
+              Alert.alert('Error', 'Failed to sign out. Please try again.');
+            } else {
+              console.log('Successfully signed out');
+              router.replace('/login');
+            }
           },
-          {
-            text: 'Sign Out',
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                console.log('Signing out user');
-                const { error } = await supabase.auth.signOut();
-                if (error) {
-                  console.error('Error signing out:', error);
-                  Alert.alert('Error', 'Failed to sign out. Please try again.');
-                } else {
-                  console.log('Successfully signed out');
-                  router.replace('/login');
-                }
-              } catch (error) {
-                console.error('Error during logout:', error);
-                Alert.alert('Error', 'An unexpected error occurred during logout');
-              }
-            },
-          },
-        ]
-      );
-    } catch (error) {
-      console.error('Error showing logout alert:', error);
-    }
+        },
+      ]
+    );
   };
 
-  if (isLoading) {
-    return (
-      <SafeAreaView style={commonStyles.wrapper}>
-        <View style={commonStyles.container}>
-          <View style={commonStyles.content}>
-            <Text style={commonStyles.title}>Loading...</Text>
-          </View>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  try {
-    return (
+  return (
     <SafeAreaView style={commonStyles.wrapper}>
       <View style={commonStyles.container}>
         <View style={commonStyles.content}>
@@ -140,10 +88,6 @@ export default function HomeScreen() {
               source={require('../assets/images/0c6f758e-3623-49b9-8253-850b43db8407.png')}
               style={styles.targetImage}
               resizeMode="cover"
-              onError={(error) => {
-                console.error('Image load error:', error);
-              }}
-              onLoad={() => console.log('Image loaded successfully')}
             />
           </View>
           
@@ -204,22 +148,7 @@ export default function HomeScreen() {
         </View>
       </View>
     </SafeAreaView>
-    );
-  } catch (error) {
-    console.error('Error rendering HomeScreen:', error);
-    return (
-      <SafeAreaView style={commonStyles.wrapper}>
-        <View style={commonStyles.container}>
-          <View style={commonStyles.content}>
-            <Text style={commonStyles.title}>Home Screen Error</Text>
-            <Text style={commonStyles.text}>
-              Something went wrong loading the home screen.
-            </Text>
-          </View>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  );
 }
 
 const styles = StyleSheet.create({

@@ -97,8 +97,6 @@ const getCallerInfo = (): string => {
 };
 
 export const setupErrorLogging = () => {
-  console.log('Setting up error logging...');
-  
   // Capture unhandled errors in web environment
   if (typeof window !== 'undefined') {
     // Override window.onerror to catch JavaScript errors
@@ -167,57 +165,58 @@ export const setupErrorLogging = () => {
   const originalConsoleWarn = console.warn;
   const originalConsoleLog = console.log;
 
-  // Enable detailed error logging to capture more information
+  // UNCOMMENT BELOW CODE TO GET MORE SENSITIVE ERROR LOGGING (usually many errors triggered per 1 uncaught runtime error)
+
   // Override console.error to capture more detailed information
-  console.error = (...args: any[]) => {
-    const stack = new Error().stack || '';
-    const sourceInfo = extractSourceLocation(stack);
-    const callerInfo = getCallerInfo();
+  // console.error = (...args: any[]) => {
+  //   const stack = new Error().stack || '';
+  //   const sourceInfo = extractSourceLocation(stack);
+  //   const callerInfo = getCallerInfo();
 
-    // Create enhanced message with source information
-    const enhancedMessage = args.join(' ') + sourceInfo + callerInfo;
+  //   // Create enhanced message with source information
+  //   const enhancedMessage = args.join(' ') + sourceInfo + callerInfo;
 
-    // Add timestamp and make it stand out in Metro logs
-    originalConsoleError('🔥🔥🔥 ERROR:', new Date().toISOString(), enhancedMessage);
+  //   // Add timestamp and make it stand out in Metro logs
+  //   originalConsoleError('🔥🔥🔥 ERROR:', new Date().toISOString(), enhancedMessage);
 
-    // Also send to parent
-    sendErrorToParent('error', 'Console Error', enhancedMessage);
-  };
+  //   // Also send to parent
+  //   sendErrorToParent('error', 'Console Error', enhancedMessage);
+  // };
 
   // Override console.warn to capture warnings with source location
-  console.warn = (...args: any[]) => {
-    const stack = new Error().stack || '';
-    const sourceInfo = extractSourceLocation(stack);
-    const callerInfo = getCallerInfo();
+  // console.warn = (...args: any[]) => {
+  //   const stack = new Error().stack || '';
+  //   const sourceInfo = extractSourceLocation(stack);
+  //   const callerInfo = getCallerInfo();
 
-    // Create enhanced message with source information
-    const enhancedMessage = args.join(' ') + sourceInfo + callerInfo;
+  //   // Create enhanced message with source information
+  //   const enhancedMessage = args.join(' ') + sourceInfo + callerInfo;
 
-    originalConsoleWarn('⚠️ WARNING:', new Date().toISOString(), enhancedMessage);
+  //   originalConsoleWarn('⚠️ WARNING:', new Date().toISOString(), enhancedMessage);
 
-    // Also send to parent
-    sendErrorToParent('warn', 'Console Warning', enhancedMessage);
-  };
+  //   // Also send to parent
+  //   sendErrorToParent('warn', 'Console Warning', enhancedMessage);
+  // };
 
-  // Also override console.log to catch any logs that might contain error information
-  console.log = (...args: any[]) => {
-    const message = args.join(' ');
+  // // Also override console.log to catch any logs that might contain error information
+  // console.log = (...args: any[]) => {
+  //   const message = args.join(' ');
 
-    // Check if this log message contains warning/error keywords
-    if (message.indexOf('deprecated') !== -1 || message.indexOf('warning') !== -1 || message.indexOf('error') !== -1) {
-      const stack = new Error().stack || '';
-      const sourceInfo = extractSourceLocation(stack);
-      const callerInfo = getCallerInfo();
+  //   // Check if this log message contains warning/error keywords
+  //   if (message.indexOf('deprecated') !== -1 || message.indexOf('warning') !== -1 || message.indexOf('error') !== -1) {
+  //     const stack = new Error().stack || '';
+  //     const sourceInfo = extractSourceLocation(stack);
+  //     const callerInfo = getCallerInfo();
 
-      const enhancedMessage = message + sourceInfo + callerInfo;
+  //     const enhancedMessage = message + sourceInfo + callerInfo;
 
-      originalConsoleLog('📝 LOG (potential issue):', new Date().toISOString(), enhancedMessage);
-      sendErrorToParent('info', 'Console Log (potential issue)', enhancedMessage);
-    } else {
-      // Normal log, just pass through
-      originalConsoleLog(...args);
-    }
-  };
+  //     originalConsoleLog('📝 LOG (potential issue):', new Date().toISOString(), enhancedMessage);
+  //     sendErrorToParent('info', 'Console Log (potential issue)', enhancedMessage);
+  //   } else {
+  //     // Normal log, just pass through
+  //     originalConsoleLog(...args);
+  //   }
+  // };
 
   // Try to intercept React Native warnings at a lower level
   if (typeof window !== 'undefined' && (window as any).__DEV__) {
