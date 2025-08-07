@@ -11,6 +11,9 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
 import { stringify } from 'csv-stringify';
 
+// Test that csv-stringify is working
+console.log('csv-stringify imported successfully:', typeof stringify);
+
 interface RangeEntry {
   id: string;
   entryName: string;

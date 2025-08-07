@@ -1,3 +1,4 @@
+
 const { getDefaultConfig } = require('expo/metro-config');
 const { FileStore } = require('metro-cache');
 const path = require('path');
@@ -14,5 +15,15 @@ config.resolver.assetExts.push('png', 'jpg', 'jpeg', 'gif', 'webp', 'svg');
 
 // Add source extensions
 config.resolver.sourceExts.push('ts', 'tsx', 'js', 'jsx', 'json');
+
+// Add polyfills for Node.js modules that csv-stringify needs
+config.resolver.alias = {
+  ...config.resolver.alias,
+  'stream': 'stream-browserify',
+  'util': 'util',
+  'events': 'events',
+  'buffer': '@craftzdog/react-native-buffer',
+  'process': 'process/browser',
+};
 
 module.exports = config;
