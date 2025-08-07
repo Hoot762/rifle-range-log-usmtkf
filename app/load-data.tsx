@@ -9,6 +9,7 @@ import Button from '../components/Button';
 import * as FileSystem from 'expo-file-system';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
+import { stringify } from 'csv-stringify';
 
 interface RangeEntry {
   id: string;
@@ -49,8 +50,11 @@ export default function LoadDataScreen() {
 
   const [isImporting, setIsImporting] = useState(false);
   const [exportModalVisible, setExportModalVisible] = useState(false);
+  const [csvExportModalVisible, setCsvExportModalVisible] = useState(false);
   const [fileName, setFileName] = useState('range_data_export');
+  const [csvFileName, setCsvFileName] = useState('range_entries_export');
   const [isExporting, setIsExporting] = useState(false);
+  const [isCsvExporting, setIsCsvExporting] = useState(false);
 
   const saveBase64Image = async (base64Data: string, entryId: string): Promise<string> => {
     try {
@@ -347,6 +351,112 @@ export default function LoadDataScreen() {
     }
   };
 
+  const stringifyAsync = (data: any[], options: any): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      stringify(data, options, (err, output) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(output);
+        }
+      });
+    });
+  };
+
+  const exportToCSV = async () => {
+    console.log('Opening CSV export options...');
+    setCsvExportModalVisible(true);
+  };
+
+  const performCsvExport = async (exportType: 'share' | 'save') => {
+    console.log(`Performing CSV export with type: ${exportType}`);
+    setIsCsvExporting(true);
+    
+    try {
+      const data = await AsyncStorage.getItem('rangeEntries');
+      if (!data) {
+        Alert.alert('No Data', 'No entries found to export');
+        return;
+      }
+
+      const entries: RangeEntry[] = JSON.parse(data);
+      if (entries.length === 0) {
+        Alert.alert('No Data', 'No entries found to export');
+        return;
+      }
+
+      console.log(`Exporting ${entries.length} entries to CSV...`);
+
+      // Sort entries by date (oldest first)
+      const sortedEntries = entries.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateA.getTime() - dateB.getTime();
+      });
+
+      // Prepare CSV data with all entry details
+      const csvData = sortedEntries.map(entry => ({
+        'Entry Name': entry.entryName || '',
+        'Date': entry.date || '',
+        'Rifle Name': entry.rifleName || '',
+        'Caliber': entry.rifleCalibber || '',
+        'Distance': entry.distance || '',
+        'Elevation MOA': entry.elevationMOA || '',
+        'Windage MOA': entry.windageMOA || '',
+        'Bull Grain Weight': entry.bullGrainWeight || '',
+        'Class': entry.selectedClass || '',
+        'Score': entry.score || '',
+        'Shot Scores': entry.shotScores ? entry.shotScores.join(', ') : '',
+        'Notes': entry.notes || '',
+        'Has Target Image': entry.targetImageUri ? 'Yes' : 'No',
+        'Timestamp': entry.timestamp || ''
+      }));
+
+      console.log('Converting data to CSV format...');
+      const csvString = await stringifyAsync(csvData, { 
+        header: true,
+        quoted: true,
+        quotedEmpty: true
+      });
+
+      const sanitizedFileName = csvFileName.replace(/[^a-zA-Z0-9_-]/g, '_');
+      const fullFileName = `${sanitizedFileName}.csv`;
+      const fileUri = FileSystem.documentDirectory + fullFileName;
+
+      console.log('Writing CSV file...');
+      await FileSystem.writeAsStringAsync(fileUri, csvString, { 
+        encoding: FileSystem.EncodingType.UTF8 
+      });
+
+      console.log('CSV file created at:', fileUri);
+
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri, {
+          mimeType: 'text/csv',
+          dialogTitle: exportType === 'save' ? 'Save CSV Export' : 'Share CSV Export'
+        });
+        console.log('CSV file shared successfully');
+      } else {
+        Alert.alert('Error', 'Sharing is not available on this device');
+        return;
+      }
+
+      setCsvExportModalVisible(false);
+      
+      Alert.alert(
+        'CSV Export Complete',
+        `Successfully exported ${entries.length} entries to ${fullFileName}, ordered by date`,
+        [{ text: 'OK' }]
+      );
+
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      Alert.alert('Error', 'Failed to export CSV. Please try again.');
+    } finally {
+      setIsCsvExporting(false);
+    }
+  };
+
   const exportData = async () => {
     console.log('Opening export options...');
     setExportModalVisible(true);
@@ -510,6 +620,10 @@ export default function LoadDataScreen() {
     setExportModalVisible(false);
   };
 
+  const closeCsvExportModal = () => {
+    setCsvExportModalVisible(false);
+  };
+
   const clearAllData = async () => {
     console.log('Clearing all data...');
     
@@ -613,6 +727,18 @@ export default function LoadDataScreen() {
             text="Export Data"
             onPress={exportData}
             style={buttonStyles.accent}
+          />
+        </View>
+
+        <View style={commonStyles.card}>
+          <Text style={commonStyles.subtitle}>Export to CSV</Text>
+          <Text style={commonStyles.text}>
+            Export all your range entries with their details to a CSV file, ordered by date. Perfect for spreadsheet analysis.
+          </Text>
+          <Button
+            text="Export to CSV"
+            onPress={exportToCSV}
+            style={buttonStyles.primary}
           />
         </View>
 
@@ -750,6 +876,125 @@ export default function LoadDataScreen() {
               onPress={closeExportModal}
               style={[buttonStyles.secondary, {
                 opacity: isExporting ? 0.6 : 1
+              }]}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={csvExportModalVisible}
+        onRequestClose={closeCsvExportModal}
+      >
+        <View style={{
+          flex: 1,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 20
+        }}>
+          <View style={{
+            backgroundColor: colors.background,
+            borderRadius: 12,
+            padding: 20,
+            width: '100%',
+            maxWidth: 400,
+            borderWidth: 2,
+            borderColor: colors.border
+          }}>
+            <View style={{ alignItems: 'center', marginBottom: 20 }}>
+              <Icon name="document-text" size={40} style={{ marginBottom: 10 }} />
+              <Text style={[commonStyles.title, { fontSize: 20, marginBottom: 10 }]}>
+                Export to CSV
+              </Text>
+              <Text style={[commonStyles.text, { textAlign: 'center', color: colors.grey }]}>
+                Export all entries with details, ordered by date
+              </Text>
+            </View>
+
+            <View style={{ marginBottom: 20 }}>
+              <Text style={[commonStyles.text, { marginBottom: 8 }]}>
+                File Name:
+              </Text>
+              <TextInput
+                style={[commonStyles.input, { marginBottom: 0 }]}
+                value={csvFileName}
+                onChangeText={setCsvFileName}
+                placeholder="Enter CSV file name"
+                placeholderTextColor={colors.grey}
+                editable={!isCsvExporting}
+              />
+              <Text style={[commonStyles.text, { 
+                fontSize: 12, 
+                color: colors.grey, 
+                marginTop: 4,
+                marginBottom: 0 
+              }]}>
+                .csv extension will be added automatically
+              </Text>
+            </View>
+
+            {isCsvExporting && (
+              <View style={{ 
+                backgroundColor: colors.secondary, 
+                borderRadius: 8, 
+                padding: 15, 
+                marginBottom: 20,
+                alignItems: 'center'
+              }}>
+                <Text style={[commonStyles.text, { 
+                  fontSize: 14, 
+                  color: colors.text,
+                  marginBottom: 0
+                }]}>
+                  Creating CSV file... Please wait
+                </Text>
+              </View>
+            )}
+
+            <View style={{ marginBottom: 20 }}>
+              <Button
+                text={isCsvExporting ? "Processing..." : "Share CSV"}
+                onPress={() => performCsvExport('share')}
+                style={[buttonStyles.primary, { 
+                  marginBottom: 10,
+                  opacity: isCsvExporting ? 0.6 : 1
+                }]}
+              />
+              <Text style={[commonStyles.text, { 
+                fontSize: 12, 
+                color: colors.grey, 
+                textAlign: 'center',
+                marginBottom: 15
+              }]}>
+                Opens share dialog to save or send the CSV file
+              </Text>
+
+              <Button
+                text={isCsvExporting ? "Processing..." : "Save CSV"}
+                onPress={() => performCsvExport('save')}
+                style={[buttonStyles.accent, {
+                  opacity: isCsvExporting ? 0.6 : 1
+                }]}
+              />
+              <Text style={[commonStyles.text, { 
+                fontSize: 12, 
+                color: colors.grey, 
+                textAlign: 'center',
+                marginTop: 4,
+                marginBottom: 0
+              }]}>
+                Choose where to save the CSV file on your device
+              </Text>
+            </View>
+
+            <Button
+              text="Cancel"
+              onPress={closeCsvExportModal}
+              style={[buttonStyles.secondary, {
+                opacity: isCsvExporting ? 0.6 : 1
               }]}
             />
           </View>
