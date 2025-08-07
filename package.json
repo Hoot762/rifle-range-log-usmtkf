@@ -3,13 +3,14 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-    "dev": "EXPO_NO_TELEMETRY=1 expo start --tunnel",
-    "android": "EXPO_NO_TELEMETRY=1 expo start --android",
-    "ios": "EXPO_NO_TELEMETRY=1 expo start --ios",
-    "web": "EXPO_NO_TELEMETRY=1 expo start --web",
+    "dev": "EXPO_NO_TELEMETRY=1 expo start --tunnel --clear",
+    "android": "EXPO_NO_TELEMETRY=1 expo start --android --clear",
+    "ios": "EXPO_NO_TELEMETRY=1 expo start --ios --clear",
+    "web": "EXPO_NO_TELEMETRY=1 expo start --web --clear",
     "build:web": "expo export -p web && npx workbox generateSW workbox-config.js",
     "build:android": "expo prebuild -p android",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "reset": "expo start --clear"
   },
   "dependencies": {
     "@babel/runtime": "^7.26.9",

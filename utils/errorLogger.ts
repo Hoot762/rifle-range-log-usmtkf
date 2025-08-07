@@ -97,6 +97,8 @@ const getCallerInfo = (): string => {
 };
 
 export const setupErrorLogging = () => {
+  console.log('Setting up error logging...');
+  
   // Capture unhandled errors in web environment
   if (typeof window !== 'undefined') {
     // Override window.onerror to catch JavaScript errors

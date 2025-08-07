@@ -9,4 +9,10 @@ config.cacheStores = [
     new FileStore({ root: path.join(__dirname, 'node_modules', '.cache', 'metro') }),
   ];
 
+// Ensure proper asset resolution
+config.resolver.assetExts.push('png', 'jpg', 'jpeg', 'gif', 'webp', 'svg');
+
+// Add source extensions
+config.resolver.sourceExts.push('ts', 'tsx', 'js', 'jsx', 'json');
+
 module.exports = config;
