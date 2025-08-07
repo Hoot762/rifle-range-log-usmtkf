@@ -31,7 +31,7 @@ module.exports = function (api) {
             'buffer': '@craftzdog/react-native-buffer',
             'util': 'util',
             'events': 'events',
-            'process': 'process/browser',
+            'process': 'process',
           },
         },
       ],

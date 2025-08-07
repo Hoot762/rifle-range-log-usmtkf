@@ -23,7 +23,7 @@ config.resolver.alias = {
   'util': 'util',
   'events': 'events',
   'buffer': '@craftzdog/react-native-buffer',
-  'process': 'process/browser',
+  'process': 'process',
 };
 
 module.exports = config;

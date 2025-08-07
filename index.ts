@@ -5,7 +5,7 @@ import 'react-native-url-polyfill/auto';
 
 // Add stream polyfill
 import { Buffer } from '@craftzdog/react-native-buffer';
-import process from 'process/browser';
+import * as process from 'process';
 
 // Make Buffer and process globally available
 global.Buffer = Buffer;
