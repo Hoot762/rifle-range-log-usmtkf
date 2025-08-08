@@ -6,12 +6,14 @@ import { Platform, SafeAreaView } from 'react-native';
 import { commonStyles } from '../styles/commonStyles';
 import { useEffect, useState, useRef } from 'react';
 import { setupErrorLogging } from '../utils/errorLogger';
-import { supabase } from './integrations/supabase/client';
+import { supabase } from './integrations/supabase/client'
+import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import type { Session } from '@supabase/supabase-js';
 
 const STORAGE_KEY = 'emulated_device';
 
 export default function RootLayout() {
+  useFrameworkReady();
   const actualInsets = useSafeAreaInsets();
   const { emulate } = useGlobalSearchParams<{ emulate?: string }>();
   const [storedEmulate, setStoredEmulate] = useState<string | null>(null);
