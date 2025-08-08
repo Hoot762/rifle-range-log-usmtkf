@@ -50,11 +50,6 @@ export default function HomeScreen() {
     }
   };
 
-  const navigateToBuildHelp = () => {
-    console.log('Navigating to build-help screen');
-    router.push('/build-help');
-  };
-
   const handleLogout = async () => {
     Alert.alert(
       'Sign Out',
@@ -138,15 +133,6 @@ export default function HomeScreen() {
                 text="Backup/Restore"
                 onPress={navigateToLoadData}
                 style={buttonStyles.accent}
-              />
-            </View>
-
-            <View style={commonStyles.buttonContainer}>
-              <Button
-                text="Build & Deploy Help"
-                onPress={navigateToBuildHelp}
-                style={buttonStyles.lightGrey}
-                textStyle={{ color: colors.background }}
               />
             </View>
 
