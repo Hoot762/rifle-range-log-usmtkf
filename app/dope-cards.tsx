@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Button from '../components/Button';
 import Icon from '../components/Icon';
-import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
+import { commonStyles, buttonStyles, colors, spacing, borderRadius, shadows, typography } from '../styles/commonStyles';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
@@ -510,8 +510,10 @@ export default function DopeCardsScreen() {
   const renderCardForm = () => (
     <View style={{ width: '100%' }}>
       <View style={{ alignItems: 'center', marginBottom: 20 }}>
-        <Icon name="target" size={60} style={{ marginBottom: 10 }} />
-        <Text style={commonStyles.title}>
+        <View style={styles.headerIcon}>
+          <Icon name="target" size={48} style={{ color: colors.dopeButton }} />
+        </View>
+        <Text style={styles.pageTitle}>
           {editingCard ? 'Edit DOPE Card' : 'Add New DOPE Card'}
         </Text>
       </View>
@@ -697,9 +699,11 @@ export default function DopeCardsScreen() {
   const renderCardsList = () => (
     <View style={{ width: '100%' }}>
       <View style={{ alignItems: 'center', marginBottom: 20 }}>
-        <Icon name="target" size={60} style={{ marginBottom: 10 }} />
-        <Text style={commonStyles.title}>DOPE Cards</Text>
-        <Text style={commonStyles.text}>
+        <View style={styles.headerIcon}>
+          <Icon name="target" size={48} style={{ color: colors.dopeButton }} />
+        </View>
+        <Text style={styles.pageTitle}>DOPE Cards</Text>
+        <Text style={styles.subtitle}>
           {dopeCards.length} {dopeCards.length === 1 ? 'card' : 'cards'} found
         </Text>
       </View>
@@ -1097,3 +1101,27 @@ export default function DopeCardsScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  headerIcon: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.full,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...shadows.md,
+  },
+  pageTitle: {
+    ...typography.h1,
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: spacing.sm,
+    fontSize: 28,
+  },
+  subtitle: {
+    ...typography.body,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+});

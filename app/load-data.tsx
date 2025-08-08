@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import Icon from '../components/Icon';
 import { Text, View, SafeAreaView, ScrollView, Alert, Modal, TextInput } from 'react-native';
-import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
+import { commonStyles, buttonStyles, colors, spacing, borderRadius, shadows, typography } from '../styles/commonStyles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import Button from '../components/Button';
@@ -555,8 +555,10 @@ export default function LoadDataScreen() {
     <SafeAreaView style={commonStyles.wrapper}>
       <ScrollView contentContainerStyle={commonStyles.scrollContent}>
         <View style={{ alignItems: 'center', marginBottom: 20 }}>
-          <Icon name="download" size={60} style={{ marginBottom: 10 }} />
-          <Text style={commonStyles.title}>Load Data</Text>
+          <View style={styles.headerIcon}>
+            <Icon name="download" size={48} style={{ color: colors.warning }} />
+          </View>
+          <Text style={styles.pageTitle}>Backup & Restore</Text>
         </View>
 
         <View style={commonStyles.card}>
@@ -758,3 +760,21 @@ export default function LoadDataScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  headerIcon: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.full,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...shadows.md,
+  },
+  pageTitle: {
+    ...typography.h1,
+    color: colors.text,
+    textAlign: 'center',
+    fontSize: 28,
+  },
+});

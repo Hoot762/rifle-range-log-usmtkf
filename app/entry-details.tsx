@@ -4,7 +4,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect, useCallback } from 'react';
 import Button from '../components/Button';
 import Icon from '../components/Icon';
-import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
+import { commonStyles, buttonStyles, colors, spacing, borderRadius, shadows, typography } from '../styles/commonStyles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface RangeEntry {
@@ -303,8 +303,10 @@ export default function EntryDetailsScreen() {
     <SafeAreaView style={commonStyles.wrapper}>
       <ScrollView contentContainerStyle={commonStyles.scrollContent}>
         <View style={{ alignItems: 'center', marginBottom: 20 }}>
-          <Icon name="document-text" size={60} style={{ marginBottom: 10 }} />
-          <Text style={commonStyles.title}>{entry.entryName || 'Entry Details'}</Text>
+          <View style={styles.headerIcon}>
+            <Icon name="document-text" size={48} style={{ color: colors.accent }} />
+          </View>
+          <Text style={styles.pageTitle}>{entry.entryName || 'Entry Details'}</Text>
         </View>
 
         {/* Rifle Information */}
@@ -509,3 +511,21 @@ export default function EntryDetailsScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  headerIcon: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.full,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...shadows.md,
+  },
+  pageTitle: {
+    ...typography.h1,
+    color: colors.text,
+    textAlign: 'center',
+    fontSize: 28,
+  },
+});

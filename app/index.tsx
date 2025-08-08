@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import Button from '../components/Button';
 import Icon from '../components/Icon';
-import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
+import { commonStyles, buttonStyles, colors, spacing, borderRadius, shadows, typography } from '../styles/commonStyles';
 import { supabase } from './integrations/supabase/client';
 
 export default function HomeScreen() {
@@ -80,71 +80,91 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={commonStyles.wrapper}>
-      <View style={commonStyles.container}>
-        <View style={commonStyles.content}>
-          {/* Target image in circular container */}
-          <View style={styles.targetImageContainer}>
-            <Image 
-              source={require('../assets/images/0c6f758e-3623-49b9-8253-850b43db8407.png')}
-              style={styles.targetImage}
-              resizeMode="cover"
-            />
-          </View>
-          
-          <Text style={commonStyles.title}>Rifle Range Logger</Text>
-          <Text style={commonStyles.text}>
-            Track your rifle range data including scope settings, distances, and scores.
-          </Text>
-
-          {userEmail && (
-            <Text style={styles.userInfo}>
-              Welcome, {userEmail}
+      <View style={styles.container}>
+        {/* Header Section */}
+        <View style={styles.header}>
+          <View style={styles.heroSection}>
+            <View style={styles.targetImageContainer}>
+              <Image 
+                source={require('../assets/images/0c6f758e-3623-49b9-8253-850b43db8407.png')}
+                style={styles.targetImage}
+                resizeMode="cover"
+              />
+            </View>
+            
+            <Text style={styles.title}>Rifle Range Logger</Text>
+            <Text style={styles.subtitle}>
+              Track your rifle range data including scope settings, distances, and scores.
             </Text>
-          )}
-          
-          <View style={commonStyles.section}>
-            <View style={commonStyles.buttonContainer}>
+
+            {userEmail && (
+              <View style={styles.userBadge}>
+                <Text style={styles.userInfo}>
+                  Welcome, {userEmail}
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
+        
+        {/* Main Actions Grid */}
+        <View style={styles.actionsContainer}>
+          <View style={styles.actionsGrid}>
+            <View style={styles.actionCard}>
+              <Icon name="add-circle" size={32} style={styles.actionIcon} />
+              <Text style={styles.actionTitle}>Add Entry</Text>
+              <Text style={styles.actionDescription}>Record new range session</Text>
               <Button
                 text="Add New Entry"
                 onPress={navigateToAddEntry}
-                style={buttonStyles.primary}
+                style={styles.actionButton}
               />
             </View>
             
-            <View style={commonStyles.buttonContainer}>
+            <View style={styles.actionCard}>
+              <Icon name="list" size={32} style={styles.actionIcon} />
+              <Text style={styles.actionTitle}>View Entries</Text>
+              <Text style={styles.actionDescription}>Browse your sessions</Text>
               <Button
                 text="View Entries"
                 onPress={navigateToViewEntries}
-                style={buttonStyles.secondary}
+                variant="secondary"
+                style={styles.actionButton}
               />
             </View>
             
-            <View style={commonStyles.buttonContainer}>
+            <View style={styles.actionCard}>
+              <Icon name="target" size={32} style={styles.actionIcon} />
+              <Text style={styles.actionTitle}>DOPE Cards</Text>
+              <Text style={styles.actionDescription}>Manage rifle data</Text>
               <Button
-                text="DOPE"
+                text="DOPE Cards"
                 onPress={navigateToDopeCards}
-                style={buttonStyles.dopeButton}
-                textStyle={{ color: colors.text }}
+                style={[styles.actionButton, { backgroundColor: colors.dopeButton }]}
               />
             </View>
             
-            <View style={commonStyles.buttonContainer}>
+            <View style={styles.actionCard}>
+              <Icon name="download" size={32} style={styles.actionIcon} />
+              <Text style={styles.actionTitle}>Backup</Text>
+              <Text style={styles.actionDescription}>Export & import data</Text>
               <Button
                 text="Backup/Restore"
                 onPress={navigateToLoadData}
-                style={buttonStyles.accent}
-              />
-            </View>
-
-            <View style={commonStyles.buttonContainer}>
-              <Button
-                text="Sign Out"
-                onPress={handleLogout}
-                style={buttonStyles.backButton}
-                textStyle={styles.logoutText}
+                style={[styles.actionButton, { backgroundColor: colors.warning }]}
               />
             </View>
           </View>
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Button
+            text="Sign Out"
+            onPress={handleLogout}
+            variant="ghost"
+            style={styles.signOutButton}
+          />
         </View>
       </View>
     </SafeAreaView>
@@ -152,29 +172,111 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  header: {
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.lg,
+    paddingHorizontal: spacing.lg,
+  },
+  heroSection: {
+    alignItems: 'center',
+  },
   targetImageContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 100,
+    height: 100,
+    borderRadius: borderRadius.full,
     overflow: 'hidden',
-    marginBottom: 20,
-    borderWidth: 3,
-    borderColor: colors.border,
-    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.4)',
-    elevation: 6,
+    marginBottom: spacing.lg,
+    borderWidth: 2,
+    borderColor: colors.accent,
+    ...shadows.lg,
   },
   targetImage: {
     width: '100%',
     height: '100%',
   },
-  userInfo: {
-    fontSize: 14,
+  title: {
+    ...typography.h1,
     color: colors.text,
-    marginBottom: 20,
-    opacity: 0.8,
     textAlign: 'center',
+    marginBottom: spacing.md,
+    letterSpacing: -0.5,
   },
-  logoutText: {
-    color: '#000000',
+  subtitle: {
+    ...typography.body,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+    lineHeight: 24,
+    paddingHorizontal: spacing.md,
+  },
+  userBadge: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...shadows.sm,
+  },
+  userInfo: {
+    ...typography.caption,
+    color: colors.text,
+    fontWeight: '500',
+    textAlign: 'center',
+    marginBottom: 0,
+  },
+  actionsContainer: {
+    flex: 1,
+    paddingHorizontal: spacing.lg,
+  },
+  actionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+  },
+  actionCard: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    width: '48%',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...shadows.md,
+  },
+  actionIcon: {
+    marginBottom: spacing.md,
+    color: colors.accent,
+  },
+  actionTitle: {
+    ...typography.h3,
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: spacing.xs,
+    fontSize: 18,
+  },
+  actionDescription: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: spacing.md,
+  },
+  actionButton: {
+    width: '100%',
+    paddingVertical: spacing.sm,
+    minHeight: 40,
+  },
+  footer: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.lg,
+  },
+  signOutButton: {
+    borderColor: colors.error,
+    borderWidth: 1,
   },
 });

@@ -1,15 +1,17 @@
 
 import React, { useState } from 'react';
-import { Text, View, SafeAreaView, TextInput, Alert, KeyboardAvoidingView, Platform, StyleSheet, Image } from 'react-native';
+import { Text, View, SafeAreaView, TextInput, Alert, KeyboardAvoidingView, Platform, StyleSheet, Image, Animated } from 'react-native';
 import { router } from 'expo-router';
 import Button from '../components/Button';
-import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
+import { commonStyles, buttonStyles, colors, spacing, borderRadius, shadows, typography } from '../styles/commonStyles';
 import { supabase } from './integrations/supabase/client';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
 
   console.log('LoginScreen rendered');
 
@@ -73,40 +75,55 @@ export default function LoginScreen() {
           </View>
           
           <View style={styles.formSection}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Enter your email address"
-              placeholderTextColor="#888888"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              returnKeyType="next"
-              editable={!isLoading}
-            />
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Email</Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  emailFocused && styles.inputFocused
+                ]}
+                value={email}
+                onChangeText={setEmail}
+                onFocus={() => setEmailFocused(true)}
+                onBlur={() => setEmailFocused(false)}
+                placeholder="Enter your email address"
+                placeholderTextColor={colors.textMuted}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="next"
+                editable={!isLoading}
+              />
+            </View>
             
-            <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Enter your password"
-              placeholderTextColor="#888888"
-              secureTextEntry={true}
-              autoCapitalize="none"
-              autoCorrect={false}
-              returnKeyType="done"
-              onSubmitEditing={handleLogin}
-              editable={!isLoading}
-            />
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Password</Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  passwordFocused && styles.inputFocused
+                ]}
+                value={password}
+                onChangeText={setPassword}
+                onFocus={() => setPasswordFocused(true)}
+                onBlur={() => setPasswordFocused(false)}
+                placeholder="Enter your password"
+                placeholderTextColor={colors.textMuted}
+                secureTextEntry={true}
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="done"
+                onSubmitEditing={handleLogin}
+                editable={!isLoading}
+              />
+            </View>
             
             <View style={styles.buttonContainer}>
               <Button
                 text={isLoading ? "Signing In..." : "Sign In"}
                 onPress={handleLogin}
-                style={[buttonStyles.primary, styles.authButton]}
+                style={styles.authButton}
+                disabled={isLoading}
               />
             </View>
           </View>
@@ -129,89 +146,81 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 40,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.xl,
   },
   headerSection: {
     alignItems: 'center',
-    marginBottom: 40,
-    paddingHorizontal: 20,
+    marginBottom: spacing.xxl,
+    paddingHorizontal: spacing.lg,
   },
   targetImageContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 80,
+    height: 80,
+    borderRadius: borderRadius.full,
     overflow: 'hidden',
-    marginBottom: 20,
-    borderWidth: 3,
-    borderColor: colors.border,
-    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.4)',
-    elevation: 6,
+    marginBottom: spacing.lg,
+    borderWidth: 2,
+    borderColor: colors.accent,
+    ...shadows.lg,
   },
   targetImage: {
     width: '100%',
     height: '100%',
   },
   title: {
-    fontSize: 28,
-    fontWeight: '800',
+    ...typography.h1,
     textAlign: 'center',
     color: colors.text,
-    marginBottom: 15,
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
+    marginBottom: spacing.md,
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: colors.text,
+    ...typography.body,
+    color: colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 22,
-    opacity: 0.9,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 1,
+    lineHeight: 24,
   },
   formSection: {
     width: '100%',
     maxWidth: 400,
-    backgroundColor: 'transparent',
-    borderRadius: 16,
-    padding: 30,
+    paddingHorizontal: spacing.lg,
+  },
+  inputGroup: {
+    marginBottom: spacing.lg,
   },
   label: {
-    fontSize: 18,
-    fontWeight: '700',
+    ...typography.bodyMedium,
     color: colors.text,
-    marginBottom: 10,
+    marginBottom: spacing.sm,
     textAlign: 'left',
   },
   input: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.inputBackground,
     borderColor: colors.border,
-    borderWidth: 3,
-    borderRadius: 12,
-    padding: 18,
-    marginBottom: 20,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
     width: '100%',
-    color: '#000000',
+    color: colors.text,
     fontSize: 16,
-    fontWeight: '600',
-    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.3)',
-    elevation: 4,
-    minHeight: 55,
+    fontWeight: '500',
+    ...shadows.sm,
+    minHeight: 48,
+  },
+  inputFocused: {
+    borderColor: colors.accent,
+    borderWidth: 2,
+    ...shadows.md,
   },
   buttonContainer: {
     width: '100%',
     alignItems: 'center',
-    marginBottom: 20,
+    marginTop: spacing.lg,
   },
   authButton: {
-    paddingVertical: 18,
-    borderRadius: 12,
-    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.3)',
-    elevation: 6,
-    minHeight: 60,
+    paddingVertical: spacing.md,
+    minHeight: 52,
+    ...shadows.lg,
   },
 });

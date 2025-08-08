@@ -4,7 +4,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useRef, useEffect } from 'react';
 import Button from '../components/Button';
 import Icon from '../components/Icon';
-import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
+import { commonStyles, buttonStyles, colors, spacing, borderRadius, shadows, typography } from '../styles/commonStyles';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -71,76 +71,41 @@ const ShotScoreDropdown = ({
   return (
     <View style={{ position: 'relative', zIndex: isOpen ? 1000 : 1 }}>
       <TouchableOpacity
-        style={{
-          backgroundColor: colors.primary,
-          borderColor: isOpen ? colors.accent : colors.border,
-          borderWidth: 2,
-          borderRadius: 8,
-          paddingHorizontal: 12,
-          paddingVertical: 12,
-          marginVertical: 4,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          minHeight: 44,
-          boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.4)',
-          elevation: 3,
-        }}
+        style={[
+          styles.dropdown,
+          isOpen && styles.dropdownOpen
+        ]}
         onPress={() => setIsOpen(!isOpen)}
         activeOpacity={0.7}
       >
-        <Text style={{
-          color: getDisplayColor(),
-          fontSize: 16,
-          fontWeight: '600',
-          textAlign: 'center',
-          flex: 1
-        }}>
+        <Text style={[
+          styles.dropdownText,
+          { color: getDisplayColor() }
+        ]}>
           {getDisplayValue()}
         </Text>
-        <Icon 
-          name={isOpen ? "chevron-up" : "chevron-down"} 
-          size={16} 
-          style={{ color: colors.text }} 
-        />
+        <Icon name={isOpen ? "chevron-up" : "chevron-down"} size={16} style={{ color: colors.textSecondary }} />
       </TouchableOpacity>
 
       {isOpen && (
-        <View style={{
-          position: 'absolute',
-          top: '100%',
-          left: 0,
-          right: 0,
-          backgroundColor: colors.background,
-          borderColor: colors.accent,
-          borderWidth: 2,
-          borderRadius: 8,
-          marginTop: 2,
-          maxHeight: 200,
-          zIndex: 1000,
-          elevation: 8,
-          boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.6)',
-        }}>
-          <ScrollView style={{ maxHeight: 200 }} nestedScrollEnabled>
+        <View style={styles.dropdownMenu}>
+          <ScrollView style={styles.dropdownScroll} nestedScrollEnabled>
             {scoreOptions.map((option, index) => (
               <TouchableOpacity
                 key={index}
-                style={{
-                  paddingHorizontal: 12,
-                  paddingVertical: 12,
-                  borderBottomWidth: index < scoreOptions.length - 1 ? 1 : 0,
-                  borderBottomColor: colors.border,
-                  backgroundColor: value === option ? colors.accent + '30' : 'transparent',
-                }}
+                style={[
+                  styles.dropdownOption,
+                  value === option && styles.dropdownOptionSelected,
+                  index < scoreOptions.length - 1 && styles.dropdownOptionBorder
+                ]}
                 onPress={() => handleSelect(option)}
                 activeOpacity={0.7}
               >
-                <Text style={{
-                  color: option === 'v' ? colors.accent : colors.text,
-                  fontSize: 16,
-                  fontWeight: value === option ? '700' : '500',
-                  textAlign: 'center'
-                }}>
+                <Text style={[
+                  styles.dropdownOptionText,
+                  option === 'v' && styles.vBullText,
+                  value === option && styles.dropdownOptionTextSelected
+                ]}>
                   {option === '' ? 'Clear' : option}
                 </Text>
               </TouchableOpacity>
@@ -844,12 +809,14 @@ export default function AddEntryScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={{ alignItems: 'center', marginBottom: 20 }}>
-            <Icon name={isEditMode ? "create" : "add-circle"} size={60} style={{ marginBottom: 10 }} />
-            <Text style={commonStyles.title}>
+            <View style={styles.headerIcon}>
+              <Icon name={isEditMode ? "create" : "add-circle"} size={48} style={{ color: colors.accent }} />
+            </View>
+            <Text style={styles.pageTitle}>
               {isEditMode ? 'Edit Range Entry' : 'Add Range Entry'}
             </Text>
             {isEditMode && (
-              <Text style={[commonStyles.text, { color: colors.grey, fontSize: 14 }]}>
+              <Text style={styles.editingSubtitle}>
                 Editing: {entryName || 'Unnamed Entry'}
               </Text>
             )}
@@ -1148,3 +1115,92 @@ export default function AddEntryScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  headerIcon: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.full,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...shadows.md,
+  },
+  pageTitle: {
+    ...typography.h1,
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: spacing.sm,
+    fontSize: 28,
+  },
+  editingSubtitle: {
+    ...typography.caption,
+    color: colors.textMuted,
+    textAlign: 'center',
+  },
+  dropdown: {
+    backgroundColor: colors.inputBackground,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    marginVertical: spacing.xs,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    minHeight: 48,
+    ...shadows.sm,
+  },
+  dropdownOpen: {
+    borderColor: colors.accent,
+    borderWidth: 2,
+    ...shadows.md,
+  },
+  dropdownText: {
+    ...typography.body,
+    fontWeight: '500',
+    textAlign: 'center',
+    flex: 1,
+  },
+  dropdownMenu: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    backgroundColor: colors.card,
+    borderColor: colors.accent,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    marginTop: spacing.xs,
+    maxHeight: 200,
+    zIndex: 1000,
+    ...shadows.lg,
+  },
+  dropdownScroll: {
+    maxHeight: 200,
+  },
+  dropdownOption: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+  },
+  dropdownOptionSelected: {
+    backgroundColor: colors.accent + '20',
+  },
+  dropdownOptionBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  dropdownOptionText: {
+    ...typography.body,
+    color: colors.text,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  dropdownOptionTextSelected: {
+    fontWeight: '700',
+  },
+  vBullText: {
+    color: colors.accent,
+  },
+});

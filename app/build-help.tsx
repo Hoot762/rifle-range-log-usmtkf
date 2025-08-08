@@ -2,7 +2,7 @@
 import { Text, View, SafeAreaView, ScrollView, StyleSheet, Platform } from 'react-native';
 import Button from '../components/Button';
 import Icon from '../components/Icon';
-import { commonStyles, buttonStyles, colors } from '../styles/commonStyles';
+import { commonStyles, buttonStyles, colors, spacing, borderRadius, shadows, typography } from '../styles/commonStyles';
 import { router } from 'expo-router';
 import Constants from 'expo-constants';
 import * as WebBrowser from 'expo-web-browser';
@@ -32,9 +32,11 @@ export default function BuildHelpScreen() {
     <SafeAreaView style={commonStyles.wrapper}>
       <ScrollView contentContainerStyle={commonStyles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={{ alignItems: 'center', marginBottom: 20 }}>
-          <Icon name="construct" size={60} style={{ marginBottom: 10 }} />
-          <Text style={commonStyles.title}>Android Build & Deploy Help</Text>
-          <Text style={[commonStyles.text, { textAlign: 'center' }]}>
+          <View style={styles.headerIcon}>
+            <Icon name="construct" size={48} style={{ color: colors.warning }} />
+          </View>
+          <Text style={styles.pageTitle}>Android Build & Deploy Help</Text>
+          <Text style={styles.subtitle}>
             Use these tips to diagnose build issues and deployment errors. We&apos;ve also enabled detailed Gradle warnings in EAS to help pinpoint problems.
           </Text>
         </View>
@@ -108,20 +110,43 @@ export default function BuildHelpScreen() {
 }
 
 const styles = StyleSheet.create({
-  info: {
+  headerIcon: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.full,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...shadows.md,
+  },
+  pageTitle: {
+    ...typography.h1,
     color: colors.text,
-    fontSize: 14,
-    marginBottom: 8,
+    textAlign: 'center',
+    marginBottom: spacing.md,
+    fontSize: 28,
+  },
+  subtitle: {
+    ...typography.body,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  info: {
+    ...typography.caption,
+    color: colors.text,
+    marginBottom: spacing.sm,
   },
   smallNote: {
-    fontSize: 12,
+    ...typography.small,
+    color: colors.textMuted,
     opacity: 0.9,
-    marginTop: 10,
+    marginTop: spacing.sm,
     marginBottom: 0,
   },
   buttonRow: {
     width: '100%',
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: spacing.md,
   },
 });
