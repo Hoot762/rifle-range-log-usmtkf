@@ -1,3 +1,4 @@
+import React from 'react';
 import { Text, TouchableOpacity, StyleSheet, ViewStyle, TextStyle, Animated } from 'react-native';
 import { colors, spacing, borderRadius, shadows, typography } from '../styles/commonStyles';
 import { useState, useRef } from 'react';

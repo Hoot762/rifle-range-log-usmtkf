@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Platform, SafeAreaView } from 'react-native';
 import { commonStyles } from '../styles/commonStyles';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { setupErrorLogging } from '../utils/errorLogger';
 import { supabase } from './integrations/supabase/client';
 import type { Session } from '@supabase/supabase-js';
@@ -19,6 +19,13 @@ export default function RootLayout() {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const segments = useSegments();
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     // Set up global error logging
@@ -28,11 +35,13 @@ export default function RootLayout() {
       // If there's a new emulate parameter, store it
       if (emulate) {
         localStorage.setItem(STORAGE_KEY, emulate);
-        setStoredEmulate(emulate);
+        if (isMounted.current) {
+          setStoredEmulate(emulate);
+        }
       } else {
         // If no emulate parameter, try to get from localStorage
         const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
+        if (stored && isMounted.current) {
           setStoredEmulate(stored);
         }
       }
@@ -43,15 +52,19 @@ export default function RootLayout() {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('Initial session:', session?.user?.email || 'No session');
-      setSession(session);
-      setIsLoading(false);
+      if (isMounted.current) {
+        setSession(session);
+        setIsLoading(false);
+      }
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       console.log('Auth state changed:', session?.user?.email || 'No session');
-      setSession(session);
-      setIsLoading(false);
+      if (isMounted.current) {
+        setSession(session);
+        setIsLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();

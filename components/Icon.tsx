@@ -60,5 +60,5 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
+import { View, StyleSheet } from 'react-native';
   },
-});
