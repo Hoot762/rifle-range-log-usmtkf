@@ -1,5 +1,5 @@
 
-import { Text, View, SafeAreaView, ScrollView, Alert, Image, TouchableOpacity, Modal, TextInput } from 'react-native';
+import { Text, View, SafeAreaView, ScrollView, Alert, Image, TouchableOpacity, Modal, TextInput, LayoutAnimation, UIManager, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { useState, useEffect, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
@@ -41,6 +41,16 @@ export default function ViewEntriesScreen() {
   // Filter states
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [filterValue, setFilterValue] = useState('');
+
+  // Collapsible state for filter section
+  const [filterCollapsed, setFilterCollapsed] = useState(true);
+
+  // Enable LayoutAnimation on Android
+  useEffect(() => {
+    if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+      UIManager.setLayoutAnimationEnabledExperimental(true);
+    }
+  }, []);
 
   // Use useFocusEffect to reload entries whenever the screen gains focus
   useFocusEffect(
@@ -416,6 +426,13 @@ export default function ViewEntriesScreen() {
     );
   }
 
+  const toggleFilterCollapsed = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setFilterCollapsed(prev => !prev);
+  };
+
+  const hasActiveFilter = activeFilter !== 'all' || Boolean(filterValue.trim());
+
   return (
     <SafeAreaView style={commonStyles.wrapper}>
       <ScrollView contentContainerStyle={commonStyles.scrollContent}>
@@ -427,153 +444,186 @@ export default function ViewEntriesScreen() {
           </Text>
         </View>
 
-        {/* Filter Section */}
+        {/* Filter Section - now collapsible */}
         <View style={{
           backgroundColor: colors.secondary,
           borderRadius: 12,
-          padding: 16,
+          padding: filterCollapsed ? 12 : 16,
           marginBottom: 20,
           borderWidth: 1,
           borderColor: colors.border
         }}>
-          <Text style={[commonStyles.text, { 
-            fontSize: 16, 
-            fontWeight: 'bold', 
-            marginBottom: 12,
-            textAlign: 'center'
-          }]}>
-            Filter Entries
-          </Text>
-          
-          {/* Filter Buttons */}
-          <View style={{ 
-            flexDirection: 'row', 
-            justifyContent: 'space-between', 
-            marginBottom: 12,
-            gap: 8
-          }}>
-            <TouchableOpacity
-              onPress={() => setFilter('all')}
-              style={{
-                backgroundColor: activeFilter === 'all' ? colors.accent : colors.inputBackground,
-                borderRadius: 8,
-                paddingVertical: 8,
-                paddingHorizontal: 12,
-                flex: 1,
-                alignItems: 'center',
-                borderWidth: 1,
-                borderColor: activeFilter === 'all' ? colors.accent : colors.border
-              }}
-            >
-              <Text style={[commonStyles.text, { 
-                fontSize: 12, 
-                marginBottom: 0,
-                color: activeFilter === 'all' ? colors.background : colors.text,
-                fontWeight: activeFilter === 'all' ? 'bold' : 'normal'
-              }]}>
-                All
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              onPress={() => setFilter('name')}
-              style={{
-                backgroundColor: activeFilter === 'name' ? colors.accent : colors.inputBackground,
-                borderRadius: 8,
-                paddingVertical: 8,
-                paddingHorizontal: 12,
-                flex: 1,
-                alignItems: 'center',
-                borderWidth: 1,
-                borderColor: activeFilter === 'name' ? colors.accent : colors.border
-              }}
-            >
-              <Text style={[commonStyles.text, { 
-                fontSize: 12, 
-                marginBottom: 0,
-                color: activeFilter === 'name' ? colors.background : colors.text,
-                fontWeight: activeFilter === 'name' ? 'bold' : 'normal'
-              }]}>
-                Name
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              onPress={() => setFilter('distance')}
-              style={{
-                backgroundColor: activeFilter === 'distance' ? colors.accent : colors.inputBackground,
-                borderRadius: 8,
-                paddingVertical: 8,
-                paddingHorizontal: 12,
-                flex: 1,
-                alignItems: 'center',
-                borderWidth: 1,
-                borderColor: activeFilter === 'distance' ? colors.accent : colors.border
-              }}
-            >
-              <Text style={[commonStyles.text, { 
-                fontSize: 12, 
-                marginBottom: 0,
-                color: activeFilter === 'distance' ? colors.background : colors.text,
-                fontWeight: activeFilter === 'distance' ? 'bold' : 'normal'
-              }]}>
-                Distance
-              </Text>
-            </TouchableOpacity>
-          </View>
+          {/* Header / Toggle */}
+          <TouchableOpacity
+            onPress={toggleFilterCollapsed}
+            activeOpacity={0.7}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingVertical: 4,
+            }}
+          >
+            <Text style={[commonStyles.text, { 
+              fontSize: 16, 
+              fontWeight: 'bold',
+              marginBottom: 0,
+              textAlign: 'left'
+            }]}>
+              Filter Entries
+            </Text>
+            <Icon name={filterCollapsed ? 'chevron-down' : 'chevron-up'} size={22} />
+          </TouchableOpacity>
 
-          {/* Search Input - only show when not "all" filter */}
-          {activeFilter !== 'all' && (
-            <View style={{ marginBottom: 12 }}>
-              <TextInput
-                style={[commonStyles.input, { marginBottom: 0 }]}
-                value={filterValue}
-                onChangeText={setFilterValue}
-                placeholder={
-                  activeFilter === 'name' 
-                    ? 'Search by entry name or rifle name...' 
-                    : 'Search by distance (e.g., 600, 800 yards)...'
-                }
-                placeholderTextColor={colors.grey}
-              />
-            </View>
-          )}
-
-          {/* Clear Filter Button */}
-          {(activeFilter !== 'all' || filterValue) && (
-            <TouchableOpacity
-              onPress={clearFilter}
-              style={{
-                backgroundColor: colors.error,
-                borderRadius: 8,
-                paddingVertical: 8,
-                paddingHorizontal: 16,
-                alignItems: 'center',
-                alignSelf: 'center'
-              }}
-            >
-              <Text style={[commonStyles.text, { 
-                fontSize: 12, 
-                marginBottom: 0,
-                color: colors.text,
-                fontWeight: 'bold'
-              }]}>
-                Clear Filter
-              </Text>
-            </TouchableOpacity>
-          )}
-
-          {/* Filter Results Info */}
-          {activeFilter !== 'all' && (
+          {/* Summary when collapsed */}
+          {filterCollapsed && (
             <Text style={[commonStyles.text, { 
               fontSize: 12, 
-              color: colors.grey, 
-              textAlign: 'center',
-              marginTop: 8,
-              marginBottom: 0
+              color: colors.grey,
+              marginTop: 6,
+              marginBottom: 0,
+              textAlign: 'left'
             }]}>
-              Showing {filteredEntries.length} of {entries.length} entries
+              {hasActiveFilter
+                ? `Showing ${filteredEntries.length} of ${entries.length} (filters applied)`
+                : `Showing ${filteredEntries.length} of ${entries.length}`}
             </Text>
+          )}
+
+          {/* Collapsible Content */}
+          {!filterCollapsed && (
+            <View style={{ marginTop: 12 }}>
+              {/* Filter Buttons */}
+              <View style={{ 
+                flexDirection: 'row', 
+                justifyContent: 'space-between', 
+                marginBottom: 12,
+                gap: 8
+              }}>
+                <TouchableOpacity
+                  onPress={() => setFilter('all')}
+                  style={{
+                    backgroundColor: activeFilter === 'all' ? colors.accent : colors.inputBackground,
+                    borderRadius: 8,
+                    paddingVertical: 8,
+                    paddingHorizontal: 12,
+                    flex: 1,
+                    alignItems: 'center',
+                    borderWidth: 1,
+                    borderColor: activeFilter === 'all' ? colors.accent : colors.border
+                  }}
+                >
+                  <Text style={[commonStyles.text, { 
+                    fontSize: 12, 
+                    marginBottom: 0,
+                    color: activeFilter === 'all' ? colors.background : colors.text,
+                    fontWeight: activeFilter === 'all' ? 'bold' : 'normal'
+                  }]}>
+                    All
+                  </Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  onPress={() => setFilter('name')}
+                  style={{
+                    backgroundColor: activeFilter === 'name' ? colors.accent : colors.inputBackground,
+                    borderRadius: 8,
+                    paddingVertical: 8,
+                    paddingHorizontal: 12,
+                    flex: 1,
+                    alignItems: 'center',
+                    borderWidth: 1,
+                    borderColor: activeFilter === 'name' ? colors.accent : colors.border
+                  }}
+                >
+                  <Text style={[commonStyles.text, { 
+                    fontSize: 12, 
+                    marginBottom: 0,
+                    color: activeFilter === 'name' ? colors.background : colors.text,
+                    fontWeight: activeFilter === 'name' ? 'bold' : 'normal'
+                  }]}>
+                    Name
+                  </Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  onPress={() => setFilter('distance')}
+                  style={{
+                    backgroundColor: activeFilter === 'distance' ? colors.accent : colors.inputBackground,
+                    borderRadius: 8,
+                    paddingVertical: 8,
+                    paddingHorizontal: 12,
+                    flex: 1,
+                    alignItems: 'center',
+                    borderWidth: 1,
+                    borderColor: activeFilter === 'distance' ? colors.accent : colors.border
+                  }}
+                >
+                  <Text style={[commonStyles.text, { 
+                    fontSize: 12, 
+                    marginBottom: 0,
+                    color: activeFilter === 'distance' ? colors.background : colors.text,
+                    fontWeight: activeFilter === 'distance' ? 'bold' : 'normal'
+                  }]}>
+                    Distance
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Search Input - only show when not "all" filter */}
+              {activeFilter !== 'all' && (
+                <View style={{ marginBottom: 12 }}>
+                  <TextInput
+                    style={[commonStyles.input, { marginBottom: 0 }]}
+                    value={filterValue}
+                    onChangeText={setFilterValue}
+                    placeholder={
+                      activeFilter === 'name' 
+                        ? 'Search by entry name or rifle name...' 
+                        : 'Search by distance (e.g., 600, 800 yards)...'
+                    }
+                    placeholderTextColor={colors.grey}
+                  />
+                </View>
+              )}
+
+              {/* Clear Filter Button */}
+              {(activeFilter !== 'all' || filterValue) && (
+                <TouchableOpacity
+                  onPress={clearFilter}
+                  style={{
+                    backgroundColor: colors.error,
+                    borderRadius: 8,
+                    paddingVertical: 8,
+                    paddingHorizontal: 16,
+                    alignItems: 'center',
+                    alignSelf: 'center'
+                  }}
+                >
+                  <Text style={[commonStyles.text, { 
+                    fontSize: 12, 
+                    marginBottom: 0,
+                    color: colors.text,
+                    fontWeight: 'bold'
+                  }]}>
+                    Clear Filter
+                  </Text>
+                </TouchableOpacity>
+              )}
+
+              {/* Filter Results Info */}
+              {activeFilter !== 'all' && (
+                <Text style={[commonStyles.text, { 
+                  fontSize: 12, 
+                  color: colors.grey, 
+                  textAlign: 'center',
+                  marginTop: 8,
+                  marginBottom: 0
+                }]}>
+                  Showing {filteredEntries.length} of {entries.length} entries
+                </Text>
+              )}
+            </View>
           )}
         </View>
 
