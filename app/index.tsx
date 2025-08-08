@@ -140,7 +140,7 @@ export default function HomeScreen() {
               <Button
                 text="Sign Out"
                 onPress={handleLogout}
-                style={buttonStyles.backButton}
+                style={[buttonStyles.secondary, styles.logoutButton]}
                 textStyle={styles.logoutText}
               />
             </View>
@@ -174,7 +174,12 @@ const styles = StyleSheet.create({
     opacity: 0.8,
     textAlign: 'center',
   },
+  logoutButton: {
+    backgroundColor: '#dc3545',
+    borderColor: '#dc3545',
+    marginTop: 10,
+  },
   logoutText: {
-    color: colors.background,
+    color: '#ffffff',
   },
 });
